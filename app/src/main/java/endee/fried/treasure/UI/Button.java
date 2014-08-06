@@ -18,7 +18,6 @@ public class Button {
     protected boolean isClicked;
 
 
-
     public Button(int centerX, int centerY, int radius, Callback callback) {
         this.centerX = centerX;
         this.centerY = centerY;
@@ -26,7 +25,6 @@ public class Button {
         this.callback = callback;
         this.isActive = true;
         this.isClicked = false;
-
     }
 
     /**
@@ -58,21 +56,25 @@ public class Button {
         return radius;
     }
 
-    public void draw(Canvas canvas, Paint paint) {
+    public void draw(Canvas canvas, Paint paint, float scale) {
+        int scaledRadius = (int)(radius * scale);
+        int scaledX = (int)(getX() * scale);
+        int scaledY = (int)(getY() * scale);
+
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(isActive ? (isClicked? Color.GREEN : Color.RED ): Color.GRAY);
-        canvas.drawCircle(getX(), getY(), radius, paint);
+        canvas.drawCircle(scaledX, scaledY, scaledRadius, paint);
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(Math.min(10f, radius / 20f));
-        canvas.drawCircle(getX(), getY(), radius, paint);
+        paint.setStrokeWidth(Math.min(10f, scaledRadius / 20f));
+        canvas.drawCircle(scaledX, scaledY, scaledRadius, paint);
     }
 
-    public boolean update(MotionEvent event) {
+    public boolean update(MotionEvent event, float scale) {
         if(!isActive) return false;
 
-        float touchX = event.getX();
-        float touchY = event.getY();
+        float touchX = event.getX() / scale;
+        float touchY = event.getY() / scale;
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:

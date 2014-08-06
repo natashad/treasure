@@ -58,7 +58,7 @@ public class MenuView extends SurfaceView {
         Paint paint = new Paint();
 
         for(Button b : buttons) {
-            b.draw(canvas, paint);
+            b.draw(canvas, paint, 1);
         }
     }
 
@@ -67,7 +67,7 @@ public class MenuView extends SurfaceView {
         boolean changed = false;
 
         for(Button b: buttons) {
-            changed = b.update(event) || changed;
+            changed = b.update(event, 1) || changed;
         }
 
         if(changed) this.invalidate();

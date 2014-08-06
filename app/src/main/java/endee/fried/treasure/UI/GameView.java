@@ -21,8 +21,7 @@ public class GameView extends SurfaceView {
 //    radius of the location tiles
     private int RADIUS = 50;
 //    keep a margin on the screen
-    private int MARGIN_OFFSET = 20;
-    private int MAP_WIDTH = 7;
+    private int MAP_WIDTH = 15;
 
     private HexMap hexMap;
     private HashMap<Integer, TileButton> buttons = new HashMap<Integer,TileButton>();
@@ -30,17 +29,19 @@ public class GameView extends SurfaceView {
 
 //    An integer array storing the x and y of currently active location
     private int currentlyActive;
+    private float scale;
 
     public GameView(Context context) {
         super(context);
+        scale = 1.0f;
         hexMap = new HexMap(MAP_WIDTH);
         hexMap.generate(new Random());
         final int[] allTiles = hexMap.getAllTiles();
         for (int i = 0; i < allTiles.length; i++) {
             final int index = i;
             int[] loc = hexMap.getLocation(allTiles[i]);
-            buttons.put(allTiles[i], new TileButton(loc[0] * RADIUS + MARGIN_OFFSET,
-                    (int) (loc[1] * RADIUS * 0.85f) + MARGIN_OFFSET, RADIUS, new Callback() {
+            buttons.put(allTiles[i], new TileButton(loc[0] * RADIUS,
+                    (int) (loc[1] * RADIUS * 0.87f + RADIUS * 0.13f), RADIUS, new Callback() {
                 @Override
                 public void doAction() {
                     buttons.get(currentlyActive).setHasPlayer(false);
@@ -66,6 +67,7 @@ public class GameView extends SurfaceView {
 
             buttons.get(allTiles[i]).setActive(false);
         }
+
         currentlyActive = hexMap.getStartTile();
         buttons.get(currentlyActive).setHasPlayer(true);
         List<Integer> neighbours = hexMap.getNeighbours(currentlyActive);
@@ -79,9 +81,16 @@ public class GameView extends SurfaceView {
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        int width = getWidth();
+
+        float actualWidth = (MAP_WIDTH + 0.5f) * RADIUS*2;
+
+        scale = width / actualWidth;
+
         Paint paint = new Paint();
         for(Button b : buttons.values()) {
-            b.draw(canvas, paint);
+            b.draw(canvas, paint, scale);
         }
     }
 
@@ -90,7 +99,7 @@ public class GameView extends SurfaceView {
         boolean changed = false;
 
         for(Button b: buttons.values()) {
-            changed = b.update(event) || changed;
+            changed = b.update(event, scale) || changed;
         }
 
         if(changed) this.invalidate();
