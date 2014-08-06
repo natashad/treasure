@@ -65,6 +65,8 @@ public class Button {
     }
 
     public boolean update(MotionEvent event) {
+        if(!isActive) return false;
+
         float touchX = event.getX();
         float touchY = event.getY();
 
