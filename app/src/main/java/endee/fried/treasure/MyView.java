@@ -18,20 +18,27 @@ import java.util.Random;
  */
 public class MyView extends SurfaceView {
 
-    private int radius = 30;
+//    radius of the location tiles
+    private int RADIUS = 50;
+//    keep a margin on the screen
+    private int MARGIN_OFFSET = 20;
+    private int MAP_WIDTH = 6;
+
     private HexMap hexMap;
     private HashMap<Integer, MapLocation> locations = new HashMap<Integer,MapLocation>();
+
 //    An integer array storing the x and y of currently active location
     private int currentlyActive;
 
     public MyView(Context context) {
         super(context);
-        hexMap = new HexMap(11);
+        hexMap = new HexMap(MAP_WIDTH);
         hexMap.generate(new Random());
         int[] allTiles = hexMap.getAllTiles();
         for (int i = 0; i < allTiles.length; i++) {
             int[] loc = hexMap.getLocation(allTiles[i]);
-            locations.put(allTiles[i], new MapLocation(loc[0]*radius, (int)(loc[1]*radius*0.85f), radius));
+            locations.put(allTiles[i], new MapLocation(loc[0]*RADIUS + MARGIN_OFFSET,
+                                (int)(loc[1]*RADIUS*0.85f) + MARGIN_OFFSET, RADIUS));
         }
         currentlyActive = hexMap.getStartTile();
         locations.get(currentlyActive).setActive(true);
@@ -47,11 +54,11 @@ public class MyView extends SurfaceView {
             MapLocation location = (MapLocation)pairs.getValue();
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(location.isActive() ? Color.GREEN : Color.RED);
-            canvas.drawCircle(location.getX(), location.getY(), radius, paint);
+            canvas.drawCircle(location.getX(), location.getY(), RADIUS, paint);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(3f);
             paint.setColor(Color.BLACK);
-            canvas.drawCircle(location.getX(), location.getY(), radius, paint);
+            canvas.drawCircle(location.getX(), location.getY(), RADIUS, paint);
         }
     }
 
