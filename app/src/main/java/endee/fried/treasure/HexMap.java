@@ -107,10 +107,10 @@ public class HexMap {
                 if(row % 2 == 0) rowString += c + " ";
                 else rowString += " " + c;
             }
-            Log.e("", "" + ":" + rowString);
+            Log.d("", "" + ":" + rowString);
         }
 
-        Log.e("", ""+numTiles + " total tiles");
+        Log.d("", ""+numTiles + " total tiles");
     }
 
     private void removeUnreachable() {
@@ -145,7 +145,7 @@ public class HexMap {
         while(removed) {
             removed = false;
             for(int i = 0; i < map.length; i++) {
-                if(!map[i]) continue;
+                if(!map[i] || i == start) continue;
                 if(getNeighbours(i).size() == 1) {
                     removed = true;
                     map[i] = false;

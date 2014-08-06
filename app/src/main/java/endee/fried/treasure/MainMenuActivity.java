@@ -1,22 +1,22 @@
 package endee.fried.treasure;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+
+import java.util.Random;
+
+import endee.fried.treasure.UI.MenuView;
 
 
-public class MainActivity extends Activity {
+public class MainMenuActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        View view = new MyView(this);
-        view.setBackgroundColor(Color.WHITE);
+        MenuView view = new MenuView(this);
         setContentView(view);
-
     }
 
 
@@ -32,6 +32,12 @@ public class MainActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+
+        HexMap hexMap = new HexMap(11);
+        hexMap.generate(new Random());
+        hexMap.printMap();
+
+
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
