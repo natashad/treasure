@@ -82,12 +82,6 @@ public class GameView extends SurfaceView {
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        int width = getWidth();
-
-        float actualWidth = (MAP_WIDTH + 0.5f) * RADIUS*2;
-
-        scale = width / actualWidth;
-
         Paint paint = new Paint();
         for(Button b : buttons.values()) {
             b.draw(canvas, paint, scale);
@@ -104,5 +98,12 @@ public class GameView extends SurfaceView {
 
         if(changed) this.invalidate();
         return true;
+    }
+
+    @Override
+    protected void onSizeChanged (int w, int h, int oldw, int oldh) {
+        float actualWidth = (MAP_WIDTH + 0.5f) * RADIUS * 2;
+
+        scale = w / actualWidth;
     }
 }

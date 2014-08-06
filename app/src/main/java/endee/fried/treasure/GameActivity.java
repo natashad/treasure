@@ -16,6 +16,5 @@ public class GameActivity extends Activity {
         View view = new GameView(this);
         view.setBackgroundColor(Color.WHITE);
         setContentView(view);
-
     }
 }
