@@ -13,7 +13,7 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
 
-import endee.fried.treasure.MainActivity;
+import endee.fried.treasure.GameActivity;
 
 /**
  * Created by natasha on 2014-08-05.
@@ -32,7 +32,7 @@ public class MenuView extends SurfaceView {
         buttons.add(new Button(100, 100, 100, new Callback() {
             @Override
             public void doAction() {
-                myView.getContext().startActivity(new Intent(myView.getContext(), MainActivity.class));
+                getContext().startActivity(new Intent(getContext(), GameActivity.class));
             }
         }));
 

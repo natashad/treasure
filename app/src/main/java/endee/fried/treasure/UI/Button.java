@@ -13,10 +13,10 @@ public class Button {
     private final int centerX;
     private final int centerY;
     private final int radius;
+    protected final Callback callback;
     private boolean isActive;
-    private boolean isClicked;
-    private boolean isOver;
-    private Callback callback;
+    protected boolean isClicked;
+
 
 
     public Button(int centerX, int centerY, int radius, Callback callback) {
@@ -26,7 +26,6 @@ public class Button {
         this.callback = callback;
         this.isActive = true;
         this.isClicked = false;
-        this.isOver = false;
 
     }
 
@@ -60,7 +59,12 @@ public class Button {
     }
 
     public void draw(Canvas canvas, Paint paint) {
-        paint.setColor(isActive ? ((isClicked && isOver)? Color.GREEN : Color.RED ): Color.GRAY);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(isActive ? (isClicked? Color.GREEN : Color.RED ): Color.GRAY);
+        canvas.drawCircle(getX(), getY(), radius, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(Math.min(10f, radius / 20f));
         canvas.drawCircle(getX(), getY(), radius, paint);
     }
 
@@ -74,23 +78,16 @@ public class Button {
             case MotionEvent.ACTION_DOWN:
 
                 if (isInBounds(touchX, touchY)) {
-                    isOver = true;
                     isClicked = true;
                     return true;
                 }
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                if (isInBounds(touchX, touchY)) {
-                    isOver = true;
-                } else {
-                    isOver = false;
-                }
-                return true;
+                break;
 
             case MotionEvent.ACTION_UP:
                 if (isClicked && isInBounds(touchX, touchY)) {
-                    isOver = true;
                     callback.doAction();
                 }
 

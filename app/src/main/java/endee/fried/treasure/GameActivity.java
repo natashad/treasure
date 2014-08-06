@@ -5,13 +5,15 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 
+import endee.fried.treasure.UI.GameView;
 
-public class MainActivity extends Activity {
+
+public class GameActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        View view = new MyView(this);
+        View view = new GameView(this);
         view.setBackgroundColor(Color.WHITE);
         setContentView(view);
 
