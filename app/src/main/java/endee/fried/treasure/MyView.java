@@ -7,39 +7,51 @@ import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * Created by natasha on 2014-08-05.
  */
 public class MyView extends SurfaceView {
 
-    private int radius = 70;
-    private MapLocation[][] locations = new MapLocation[5][5];
+    private int radius = 30;
+    private HexMap hexMap;
+    private HashMap<Integer, MapLocation> locations = new HashMap<Integer,MapLocation>();
 //    An integer array storing the x and y of currently active location
-    private int[] currentlyActive = new int[2];
+    private int currentlyActive;
 
     public MyView(Context context) {
         super(context);
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                locations[i][j] = new MapLocation((i*radius*2)+radius, (j*radius*2)+radius, radius);
-            }
+        hexMap = new HexMap(11);
+        hexMap.generate(new Random());
+        int[] allTiles = hexMap.getAllTiles();
+        for (int i = 0; i < allTiles.length; i++) {
+            int[] loc = hexMap.getLocation(allTiles[i]);
+            locations.put(allTiles[i], new MapLocation(loc[0]*radius, (int)(loc[1]*radius*0.85f), radius));
         }
-        currentlyActive[0] = 0;
-        currentlyActive[1] = 0;
-        locations[currentlyActive[0]][currentlyActive[1]].setActive(true);
+        currentlyActive = hexMap.getStartTile();
+        locations.get(currentlyActive).setActive(true);
     }
 
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         Paint paint = new Paint();
-        for (int i = 0; i < locations.length; i++) {
-            for (int j = 0; j < locations[i].length; j++) {
-                paint.setColor(locations[i][j].isActive() ? Color.GREEN : Color.RED);
-                canvas.drawCircle(locations[i][j].getX(), locations[i][j].getY(), radius, paint);
-            }
+        Iterator it = locations.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pairs = (Map.Entry)it.next();
+            MapLocation location = (MapLocation)pairs.getValue();
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(location.isActive() ? Color.GREEN : Color.RED);
+            canvas.drawCircle(location.getX(), location.getY(), radius, paint);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3f);
+            paint.setColor(Color.BLACK);
+            canvas.drawCircle(location.getX(), location.getY(), radius, paint);
         }
     }
 
@@ -54,25 +66,17 @@ public class MyView extends SurfaceView {
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
 
-                ArrayList<int[]> neighbours = new ArrayList<int[]>();
-                neighbours.add(new int[]{currentlyActive[0] + 1, currentlyActive[1]});
-                neighbours.add(new int[]{currentlyActive[0] - 1, currentlyActive[1]});
-                neighbours.add(new int[]{currentlyActive[0], currentlyActive[1] + 1});
-                neighbours.add(new int[]{currentlyActive[0], currentlyActive[1] - 1});
+                List<Integer> neighbours = hexMap.getNeighbours(currentlyActive);
 
                 for (int i = 0; i < neighbours.size(); i++) {
-                    int x = neighbours.get(i)[0];
-                    int y = neighbours.get(i)[1];
-                    if (x >= 0 && x < locations.length && y >= 0 && y < locations.length) {
-                        if (locations[x][y].isInBounds(touchX, touchY)) {
-                            locations[currentlyActive[0]][currentlyActive[1]].setActive(false);
-                            currentlyActive[0] = x;
-                            currentlyActive[1] = y;
-                            break;
-                        }
+                    MapLocation location = locations.get(neighbours.get(i));
+                    if (location.isInBounds(touchX, touchY)) {
+                        locations.get(currentlyActive).setActive(false);
+                        currentlyActive = neighbours.get(i);
+                        location.setActive(true);
+                        break;
                     }
                 }
-                locations[currentlyActive[0]][currentlyActive[1]].setActive(true);
                 break;
 
             case MotionEvent.ACTION_MOVE:
