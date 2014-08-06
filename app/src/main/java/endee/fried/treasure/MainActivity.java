@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.Random;
+
 
 public class MainActivity extends Activity {
 
@@ -31,6 +33,12 @@ public class MainActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+
+        HexMap hexMap = new HexMap(11);
+        hexMap.generate(new Random());
+        hexMap.printMap();
+
+
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
