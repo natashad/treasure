@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,7 +17,7 @@ import android.widget.Toast;
 /**
  * Created by natasha on 2014-08-06.
  */
-public class WifiLoungeActivity extends Activity implements WifiP2pActivity, WifiP2pManager.ChannelListener, DeviceListFragment.DeviceActionListener {
+public class WifiLoungeActivity extends Activity implements WifiP2pActivity, WifiP2pManager.ChannelListener, DeviceListFragment.DeviceActionListener, WifiP2pManager.ConnectionInfoListener {
 
     private final IntentFilter mIntentFilter = new IntentFilter();
     private WifiP2pManager mManager;
@@ -215,4 +216,16 @@ public class WifiLoungeActivity extends Activity implements WifiP2pActivity, Wif
 
     }
 
+    @Override
+    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+        if (info.groupFormed && info.isGroupOwner) {
+            Toast.makeText(WifiLoungeActivity.this,
+                    "Group Formed. You are the owner",
+                    Toast.LENGTH_SHORT).show();
+        } else if (info.groupFormed) {
+            Toast.makeText(WifiLoungeActivity.this,
+                    "Group Formed. You are the client",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
 }

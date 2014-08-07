@@ -60,16 +60,25 @@ public class GameBroadcastReceiver extends BroadcastReceiver {
                     .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
 
             if (networkInfo.isConnected()) {
-
                 // we are connected with the other device, request connection
                 // info to find group owner IP
+
+                Log.d("GameBroadcastReceiver", "Connection established");
 
                 DeviceDetailFragment fragment = (DeviceDetailFragment) ((Activity)activity)
                         .getFragmentManager().findFragmentById(R.id.frag_detail);
                 manager.requestConnectionInfo(channel, fragment);
             } else {
-                // It's a disconnect
-                activity.resetData();
+                if (networkInfo.isConnectedOrConnecting()) {
+                    Log.d("GameBroadcastReceiver", "is trying to connect");
+                }
+                else {
+                    // It's a disconnect
+                    Log.d("GameBroadcastReceiver", "RESETTING");
+                    Log.d("GameBroadcastReceiver", "REASON: "  + networkInfo.getReason());
+
+                    activity.resetData();
+                }
             }
 
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
