@@ -24,15 +24,13 @@ public class GameView extends SurfaceView {
     private final static int START_MAP_WIDTH = 5;
     private final static int MAP_WIDTH = 15;
     private final static int MIN_MAP_WIDTH = 3;
-    private final static float TILE_WIDTH =(MAP_WIDTH + 0.5f);
-    private final static float TILE_HEIGHT = (MAP_WIDTH) * 0.88f;
-
+    private final static float TILE_WIDTH = MAP_WIDTH + 0.5f;
+    private final static float TILE_HEIGHT = MAP_WIDTH * 0.88f;
 
     private HexMap hexMap;
     private HashMap<Integer, TileButton> buttons = new HashMap<Integer,TileButton>();
     private List<Button> activeButtons = new ArrayList<Button>();
 
-//    An integer array storing the x and y of currently active location
     private int currentlyActive;
     private float mapScreenHeight;
     private float scale, minScale, maxScale;
@@ -55,23 +53,9 @@ public class GameView extends SurfaceView {
                 @Override
                 public void doAction() {
                     buttons.get(currentlyActive).setHasPlayer(false);
-                    buttons.get(allTiles[index]).setHasPlayer(true);
 
                     currentlyActive = allTiles[index];
-
-                    for (Button b : activeButtons) {
-                        b.setActive(false);
-                    }
-
-                    activeButtons.clear();
-
-                    List<Integer> neighbours = hexMap.getNeighbours(currentlyActive);
-
-                    for (int i : neighbours) {
-                        buttons.get(i).setActive(true);
-                        activeButtons.add(buttons.get(i));
-                    }
-
+                    updateActiveButton(currentlyActive);
                 }
             }));
 
@@ -82,8 +66,18 @@ public class GameView extends SurfaceView {
         panDetector = new GestureDetector(context, new PanListener());
 
         currentlyActive = hexMap.getStartTile();
-        buttons.get(currentlyActive).setHasPlayer(true);
-        List<Integer> neighbours = hexMap.getNeighbours(currentlyActive);
+        updateActiveButton(currentlyActive);
+    }
+
+    private void updateActiveButton(int activeTile) {
+        buttons.get(activeTile).setHasPlayer(true);
+        List<Integer> neighbours = hexMap.getNeighbours(activeTile);
+
+        for (Button b : activeButtons) {
+            b.setActive(false);
+        }
+
+        activeButtons.clear();
 
         for (int i : neighbours) {
             buttons.get(i).setActive(true);
