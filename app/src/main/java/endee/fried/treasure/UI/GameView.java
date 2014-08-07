@@ -21,7 +21,6 @@ import endee.fried.treasure.HexMap;
  */
 public class GameView extends SurfaceView {
 
-//    radius of the location tiles
     private final static int START_MAP_WIDTH = 5;
     private final static int MAP_WIDTH = 15;
     private final static int MIN_MAP_WIDTH = 3;
