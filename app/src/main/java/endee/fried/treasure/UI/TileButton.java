@@ -11,7 +11,7 @@ public class TileButton extends Button {
 
     boolean hasPlayer;
 
-    public TileButton(int centerX, int centerY, int radius, Callback callback) {
+    public TileButton(float centerX, float centerY, float radius, Callback callback) {
         super(centerX, centerY, radius, callback);
         hasPlayer = false;
     }

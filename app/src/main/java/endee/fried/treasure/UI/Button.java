@@ -10,15 +10,15 @@ import android.view.MotionEvent;
  */
 public class Button {
 
-    private final int centerX;
-    private final int centerY;
-    private final int radius;
+    private final float centerX;
+    private final float centerY;
+    private final float radius;
     protected final Callback callback;
     private boolean isActive;
     protected boolean isClicked;
 
 
-    public Button(int centerX, int centerY, int radius, Callback callback) {
+    public Button(float centerX, float centerY, float radius, Callback callback) {
         this.centerX = centerX;
         this.centerY = centerY;
         this.radius = radius;
@@ -44,15 +44,15 @@ public class Button {
         return isActive;
     }
 
-    public int getX() {
+    public float getX() {
         return centerX;
     }
 
-    public int getY() {
+    public float getY() {
         return centerY;
     }
 
-    public int getRadius() {
+    public float getRadius() {
         return radius;
     }
 

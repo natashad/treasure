@@ -58,15 +58,15 @@ public class HexMap {
     }
 
     // Assumes each tile has a diameter of 2
-    public int[] getLocation(int tile) {
-        int[] loc = new int[2];
+    public float[] getLocation(int tile) {
+        float[] loc = new float[2];
         int row = tile / size;
         int col = tile % size;
 
-        loc[0] = col * 2 + 1;
-        loc[1] = row * 2 + 1;
+        loc[0] = col + 0.5f;
+        loc[1] = row + 0.5f;
 
-        if(row%2 == 1) loc[0] += 1;
+        if(row%2 == 1) loc[0] += 0.5f;
 
         return loc;
     }

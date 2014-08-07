@@ -22,11 +22,11 @@ import endee.fried.treasure.HexMap;
 public class GameView extends SurfaceView {
 
 //    radius of the location tiles
-    private final static int RADIUS = 77;
-//    keep a margin on the screen
+    private final static int START_MAP_WIDTH = 5;
     private final static int MAP_WIDTH = 15;
-    private final static float TILE_WIDTH =(MAP_WIDTH + 0.5f) * RADIUS * 2;
-    private final static float TILE_HEIGHT = (MAP_WIDTH) * RADIUS * 2 * 0.88f;
+    private final static int MIN_MAP_WIDTH = 3;
+    private final static float TILE_WIDTH =(MAP_WIDTH + 0.5f);
+    private final static float TILE_HEIGHT = (MAP_WIDTH) * 0.88f;
 
 
     private HexMap hexMap;
@@ -50,9 +50,9 @@ public class GameView extends SurfaceView {
         final int[] allTiles = hexMap.getAllTiles();
         for (int i = 0; i < allTiles.length; i++) {
             final int index = i;
-            int[] loc = hexMap.getLocation(allTiles[i]);
-            buttons.put(allTiles[i], new TileButton(loc[0] * RADIUS,
-                    (int) (loc[1] * RADIUS * 0.87f + RADIUS * 0.13f), RADIUS, new Callback() {
+            float[] loc = hexMap.getLocation(allTiles[i]);
+            buttons.put(allTiles[i], new TileButton(loc[0],
+                    loc[1] * 0.87f + 0.13f, 0.5f, new Callback() {
                 @Override
                 public void doAction() {
                     buttons.get(currentlyActive).setHasPlayer(false);
@@ -134,14 +134,16 @@ public class GameView extends SurfaceView {
 
     @Override
     protected void onSizeChanged (int w, int h, int oldw, int oldh) {
-        float minWidth = 3 * RADIUS * 2;
-
         minScale = w / TILE_WIDTH;
-        maxScale = w / minWidth;
+        maxScale = w / MIN_MAP_WIDTH;
 
-        scale = minScale;
+        scale = w / START_MAP_WIDTH;
 
         mapScreenHeight = w * TILE_HEIGHT/TILE_WIDTH;
+
+        // Position view to the centre of the map
+        offsetX = (TILE_WIDTH + 0.5f) / 2f - START_MAP_WIDTH / 2f;
+        offsetY = TILE_HEIGHT / 2f - (TILE_HEIGHT/TILE_WIDTH * START_MAP_WIDTH) / 2f;
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
