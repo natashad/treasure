@@ -56,27 +56,20 @@ public class Button {
         return radius;
     }
 
-    public void draw(Canvas canvas, Paint paint, float scale) {
-        int scaledRadius = (int)(radius * scale);
-        int scaledX = (int)(getX() * scale);
-        int scaledY = (int)(getY() * scale);
-
+    public void draw(Canvas canvas, Paint paint) {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(isActive ? (isClicked? Color.GREEN : Color.RED ): Color.GRAY);
-        canvas.drawCircle(scaledX, scaledY, scaledRadius, paint);
+        canvas.drawCircle(getX(), getY(), radius, paint);
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(Math.min(10f, scaledRadius / 20f));
-        canvas.drawCircle(scaledX, scaledY, scaledRadius, paint);
+        paint.setStrokeWidth(Math.min(10f, radius / 20f));
+        canvas.drawCircle(getX(), getY(), radius, paint);
     }
 
-    public boolean update(MotionEvent event, float scale) {
+    public boolean update(float touchX, float touchY, int eventAction) {
         if(!isActive) return false;
 
-        float touchX = event.getX() / scale;
-        float touchY = event.getY() / scale;
-
-        switch (event.getAction()) {
+        switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
 
                 if (isInBounds(touchX, touchY)) {

@@ -67,7 +67,7 @@ public class MenuView extends SurfaceView implements WifiP2pManager.PeerListList
         Paint paint = new Paint();
 
         for(Button b : buttons) {
-            b.draw(canvas, paint, 1);
+            b.draw(canvas, paint);
         }
     }
 
@@ -76,7 +76,7 @@ public class MenuView extends SurfaceView implements WifiP2pManager.PeerListList
         boolean changed = false;
 
         for(Button b: buttons) {
-            changed = b.update(event, 1) || changed;
+            changed = b.update(event.getX(), event.getY(), event.getAction()) || changed;
         }
 
         if(changed) this.invalidate();

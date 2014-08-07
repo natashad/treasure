@@ -2,8 +2,11 @@ package endee.fried.treasure.UI;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.SurfaceView;
 
 import java.util.ArrayList;
@@ -19,9 +22,12 @@ import endee.fried.treasure.HexMap;
 public class GameView extends SurfaceView {
 
 //    radius of the location tiles
-    private int RADIUS = 50;
+    private final static int RADIUS = 77;
 //    keep a margin on the screen
-    private int MAP_WIDTH = 15;
+    private final static int MAP_WIDTH = 15;
+    private final static float TILE_WIDTH =(MAP_WIDTH + 0.5f) * RADIUS * 2;
+    private final static float TILE_HEIGHT = (MAP_WIDTH) * RADIUS * 2 * 0.88f;
+
 
     private HexMap hexMap;
     private HashMap<Integer, TileButton> buttons = new HashMap<Integer,TileButton>();
@@ -29,7 +35,12 @@ public class GameView extends SurfaceView {
 
 //    An integer array storing the x and y of currently active location
     private int currentlyActive;
-    private float scale;
+    private float mapScreenHeight;
+    private float scale, minScale, maxScale;
+    private float offsetX, offsetY;
+
+    private ScaleGestureDetector scaleDetector;
+    private GestureDetector panDetector;
 
     public GameView(Context context) {
         super(context);
@@ -68,6 +79,9 @@ public class GameView extends SurfaceView {
             buttons.get(allTiles[i]).setActive(false);
         }
 
+        scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        panDetector = new GestureDetector(context, new PanListener());
+
         currentlyActive = hexMap.getStartTile();
         buttons.get(currentlyActive).setHasPlayer(true);
         List<Integer> neighbours = hexMap.getNeighbours(currentlyActive);
@@ -82,18 +96,36 @@ public class GameView extends SurfaceView {
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        canvas.save();
+
+        canvas.scale(scale, scale);
+        canvas.translate(-offsetX, -offsetY);
+
         Paint paint = new Paint();
         for(Button b : buttons.values()) {
-            b.draw(canvas, paint, scale);
+            b.draw(canvas, paint);
         }
+
+        canvas.restore();
+
+        paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(0, mapScreenHeight, getWidth(), getHeight(), paint);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean changed = false;
 
-        for(Button b: buttons.values()) {
-            changed = b.update(event, scale) || changed;
+        scaleDetector.onTouchEvent(event);
+        panDetector.onTouchEvent(event);
+
+        int motionEvent = event.getAction();
+
+        if(event.getY() <= mapScreenHeight) {
+            for (Button b : buttons.values()) {
+                changed = b.update(event.getX() / scale + offsetX, event.getY() / scale + offsetY, motionEvent) || changed;
+            }
         }
 
         if(changed) this.invalidate();
@@ -102,8 +134,55 @@ public class GameView extends SurfaceView {
 
     @Override
     protected void onSizeChanged (int w, int h, int oldw, int oldh) {
-        float actualWidth = (MAP_WIDTH + 0.5f) * RADIUS * 2;
+        float minWidth = 3 * RADIUS * 2;
 
-        scale = w / actualWidth;
+        minScale = w / TILE_WIDTH;
+        maxScale = w / minWidth;
+
+        scale = minScale;
+
+        mapScreenHeight = w * TILE_HEIGHT/TILE_WIDTH;
+    }
+
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            scale *= detector.getScaleFactor();
+
+            float newScreenFocusX = detector.getFocusX() * detector.getScaleFactor();
+            float newScreenFocusY = detector.getFocusY() * detector.getScaleFactor();
+
+            offsetX += (newScreenFocusX - detector.getFocusX()) / scale;
+            offsetY += (newScreenFocusY - detector.getFocusY()) / scale;
+
+            boundPanAndZoom();
+
+            invalidate();
+            return true;
+        }
+    }
+
+    private class PanListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2,
+                                float distanceX, float distanceY) {
+            offsetX += distanceX / scale;
+            offsetY += distanceY / scale;
+
+            boundPanAndZoom();
+
+            invalidate();
+            return true;
+        }
+    }
+
+    private void boundPanAndZoom() {
+        float currentTileWidth = getWidth() / scale;
+        float currentTileHeight = mapScreenHeight / scale;
+
+        offsetX = Math.max(0, Math.min(offsetX, TILE_WIDTH - currentTileWidth));
+        offsetY = Math.max(0, Math.min(offsetY, TILE_HEIGHT - currentTileHeight));
+
+        scale = Math.max(minScale, Math.min(scale, maxScale));
     }
 }

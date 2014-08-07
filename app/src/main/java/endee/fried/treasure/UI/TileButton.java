@@ -19,21 +19,17 @@ public class TileButton extends Button {
     public void setHasPlayer(boolean hasPlayer) { this.hasPlayer = hasPlayer; }
 
     @Override
-    public void draw(Canvas canvas, Paint paint, float scale) {
+    public void draw(Canvas canvas, Paint paint) {
         if(hasPlayer) {
-            int scaledRadius = (int)(getRadius() * scale);
-            int scaledX = (int)(getX() * scale);
-            int scaledY = (int)(getY() * scale);
-
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(Color.YELLOW);
-            canvas.drawCircle(scaledX, scaledY, scaledRadius, paint);
+            canvas.drawCircle(getX(), getY(), getRadius(), paint);
             paint.setStyle(Paint.Style.STROKE);
             paint.setColor(Color.BLACK);
-            paint.setStrokeWidth(Math.min(10f, scaledRadius / 20f));
-            canvas.drawCircle(scaledX, scaledY, scaledRadius, paint);
+            paint.setStrokeWidth(Math.min(10f, getRadius() / 20f));
+            canvas.drawCircle(getX(), getY(), getRadius(), paint);
         } else {
-            super.draw(canvas, paint, scale);
+            super.draw(canvas, paint);
         }
     }
 }
