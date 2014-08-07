@@ -5,25 +5,33 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import endee.fried.treasure.GameActivity;
+import endee.fried.treasure.WifiLoungeActivity;
 
 /**
  * Created by natasha on 2014-08-05.
  */
-public class MenuView extends SurfaceView {
+public class MenuView extends SurfaceView implements WifiP2pManager.PeerListListener{
     List<Button> buttons;
+    private Context context;
 
     public MenuView(Context context) {
         super(context);
         setBackgroundColor(Color.WHITE);
+
+        this.context = context;
 
         buttons = new ArrayList<Button>();
 
@@ -40,6 +48,7 @@ public class MenuView extends SurfaceView {
             @Override
             public void doAction() {
                 Log.e("","Pressed button 2!");
+                getContext().startActivity(new Intent(getContext(), WifiLoungeActivity.class));
             }
         }));
 
@@ -72,5 +81,15 @@ public class MenuView extends SurfaceView {
 
         if(changed) this.invalidate();
         return true;
+    }
+
+    @Override
+    public void onPeersAvailable(WifiP2pDeviceList peerList) {
+        Collection<WifiP2pDevice> deviceList = peerList.getDeviceList();
+        for (WifiP2pDevice device : deviceList) {
+            Log.d("" , device.deviceName + " " + device.deviceAddress);
+        }
+
+
     }
 }
