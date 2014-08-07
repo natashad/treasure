@@ -17,8 +17,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import endee.fried.treasure.BluetoothChat;
 import endee.fried.treasure.GameActivity;
-import endee.fried.treasure.WifiLoungeActivity;
 
 /**
  * Created by natasha on 2014-08-05.
@@ -48,7 +48,7 @@ public class MenuView extends SurfaceView implements WifiP2pManager.PeerListList
             @Override
             public void doAction() {
                 Log.e("","Pressed button 2!");
-                getContext().startActivity(new Intent(getContext(), WifiLoungeActivity.class));
+                getContext().startActivity(new Intent(getContext(), BluetoothChat.class));
             }
         }));
 
