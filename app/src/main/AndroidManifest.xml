@@ -20,7 +20,7 @@
         <activity android:name=".GameActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
         </activity>
-        <activity android:name=".BluetoothChat"
+        <activity android:name=".BluetoothLounge"
             android:label="@string/app_name"
             android:configChanges="orientation|keyboardHidden">
         </activity>
