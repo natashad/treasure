@@ -70,7 +70,7 @@ public class Game {
         // Add a bunch of items to itemQueue
         // Shuffle the queue
         // spawnItems until we hit max items
-        //TODO
+        // TODO
 
     }
 
@@ -92,7 +92,7 @@ public class Game {
         // Give players item or key on there tile
         // If 2 players are on the same tile add item directly to Queue
         // If 2 players are together and 1 has key, put key on random tile
-        //TODO
+        // TODO
 
 
         // Spawn next item on queue in random tile if we have less than max items
@@ -108,7 +108,25 @@ public class Game {
     }
 
     public void movePlayer(int tile) {
-        currentActions.add(new MoveAction(players.get(0), this, tile));
+        Action action = new MoveAction(players.get(localPlayer), this, tile);
+        currentActions.add(action);
+
+        // Send action to other phones about players action
+        // TODO
+    }
+
+    public boolean useItem(int itemIndex) {
+        if(players.get(localPlayer).canUseItem(itemIndex)) {
+            Action action = new UseItemAction(players.get(localPlayer), this, itemIndex);
+            currentActions.add(action);
+
+            // Send action to other phones about players action
+            // TODO
+
+            return true;
+        }
+
+        return false;
     }
 
     public void recycleItem(Item item) {

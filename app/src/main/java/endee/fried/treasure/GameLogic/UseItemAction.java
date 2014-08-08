@@ -13,6 +13,6 @@ public class UseItemAction extends Action {
 
     @Override
     public void doAction() {
-        Item item = player.useItem(itemIndex);
+        game.recycleItem(player.useItem(itemIndex));
     }
 }
