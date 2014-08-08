@@ -108,7 +108,7 @@ public class Game {
     }
 
     public void movePlayer(int tile) {
-        Action action = new MoveAction(players.get(localPlayer), this, tile);
+        Action action = new MoveAction(players.get(localPlayer), tile);
         currentActions.add(action);
 
         // Send action to other phones about players action

@@ -5,11 +5,9 @@ package endee.fried.treasure.GameLogic;
  */
 public abstract class Action {
     protected Player player;
-    protected Game game;
 
-    public Action(Player player, Game game) {
+    public Action(Player player) {
         this.player = player;
-        this.game = game;
     }
 
     public abstract void doAction();

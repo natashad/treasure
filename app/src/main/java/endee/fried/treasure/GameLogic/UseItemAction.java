@@ -5,10 +5,12 @@ package endee.fried.treasure.GameLogic;
  */
 public class UseItemAction extends Action {
     private int itemIndex;
+    private Game game;
 
     public UseItemAction(Player player, Game game, int itemIndex) {
-        super(player, game);
+        super(player);
         this.itemIndex = itemIndex;
+        this.game = game;
     }
 
     @Override

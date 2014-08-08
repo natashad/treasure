@@ -6,8 +6,8 @@ package endee.fried.treasure.GameLogic;
 public class MoveAction extends Action {
     private int tile;
 
-    public MoveAction(Player player, Game game, int tile) {
-        super(player, game);
+    public MoveAction(Player player, int tile) {
+        super(player);
         this.tile = tile;
     }
 
