@@ -22,12 +22,13 @@ import endee.fried.treasure.GameLogic.Player;
  * Created by natasha on 2014-08-05.
  */
 public class GameView extends SurfaceView {
+    private final static int DIAMETER = 100;
 
-    private final static int START_MAP_WIDTH = 5;
-    private final static int MAP_WIDTH = Game.getHexSize();
-    private final static int MIN_MAP_WIDTH = 3;
-    private final static float TILE_WIDTH = MAP_WIDTH + 0.5f;
-    private final static float TILE_HEIGHT = MAP_WIDTH * 0.88f;
+    private final static float START_MAP_WIDTH = 5 * DIAMETER;
+    private final static float MAP_WIDTH = Game.getHexSize();
+    private final static float MIN_MAP_WIDTH = 3 * DIAMETER;
+    private final static float TILE_WIDTH = MAP_WIDTH * DIAMETER + 0.5f;
+    private final static float TILE_HEIGHT = MAP_WIDTH * DIAMETER * 0.878f;
 
     private Game game;
 
@@ -60,8 +61,8 @@ public class GameView extends SurfaceView {
         for (int i = 0; i < allTiles.length; i++) {
             final int index = i;
             float[] loc = game.getHexMap().getLocation(allTiles[i]);
-            buttons.put(allTiles[i], new TileButton(loc[0],
-                    loc[1] * 0.87f + 0.13f, 0.5f, new Callback() {
+            buttons.put(allTiles[i], new TileButton(loc[0] * DIAMETER,
+                    loc[1] * DIAMETER * 0.87f + DIAMETER * 0.065f, DIAMETER/2, new Callback() {
                 @Override
                 public void doAction() {
                     game.movePlayer(allTiles[index]);
@@ -141,12 +142,12 @@ public class GameView extends SurfaceView {
         mapScreenHeight = w * TILE_HEIGHT/TILE_WIDTH;
 
         // Position view to the centre of the map
-        offsetX = (TILE_WIDTH + 0.5f) / 2f - START_MAP_WIDTH / 2f;
+        offsetX = (TILE_WIDTH / 2f - START_MAP_WIDTH / 2f) + DIAMETER / 2f;
         offsetY = TILE_HEIGHT / 2f - (TILE_HEIGHT/TILE_WIDTH * START_MAP_WIDTH) / 2f;
 
         useItemButton.setCenterX(w / 2);
-        useItemButton.setCenterY(h * 0.75f);
-        useItemButton.setRadius(w / 3);
+        useItemButton.setCenterY(mapScreenHeight + (h - mapScreenHeight) / 2);
+        useItemButton.setRadius(w / 4);
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
