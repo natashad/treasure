@@ -1,6 +1,9 @@
 package endee.fried.treasure.GameLogic;
 
+import android.content.Context;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,11 +13,13 @@ import java.util.Random;
 import java.util.Set;
 
 import endee.fried.treasure.HexMap;
+import endee.fried.treasure.UI.Callback;
 
 /**
  * Created by leslie on 05/08/14.
  */
 public class Game {
+    // todo: change these based on number of players/options
     private final static int HEX_SIZE = 15;
     private final static int MAX_ITEMS = 10;
 
@@ -24,24 +29,29 @@ public class Game {
         LOSER
     }
 
+    private final HexMap hexMap;
+
+    private final Random random;
+    private final Callback onChange;
+
+    private final List<Player> players;
+    private final Map<Integer, Tile> tiles;
+    private final Queue<Item> unplacedItemQueue;
+    private final List<Action> currentActions;
+    private final Set<Integer> itemInhabitedTiles;
+
     private State state;
-
-    private HexMap hexMap;
-
-    private List<Player> players;
-    private Map<Integer, Tile> tiles;
-    private Queue<Item> unplacedItemQueue;
-    private List<Action> currentActions;
-    private Set<Integer> itemInhabitedTiles;
-
-    private Random random;
-
     private int treasureTile;
     private int keyTile;
     private int localPlayer;
+    private boolean madeMove;
 
-    public Game(int numPlayers, int localPlayer, long seed) {
+
+    public Game(int numPlayers, int localPlayer, long seed, Context context, Callback onChange) {
         this.localPlayer = localPlayer;
+        this.onChange = onChange;
+        state = State.IN_PROGRESS;
+        madeMove = false;
         this.random = new Random(seed);
 
         hexMap = new HexMap(HEX_SIZE);
@@ -56,8 +66,14 @@ public class Game {
         unplacedItemQueue = new LinkedList<Item>();
         currentActions = new ArrayList<Action>();
         itemInhabitedTiles = new HashSet<Integer>();
+        tiles = new HashMap<Integer, Tile>();
 
-        state = State.IN_PROGRESS;
+        int[] tileArray = hexMap.getAllTiles();
+
+        for(int i = 0; i < tileArray.length; i++) {
+            tiles.put(tileArray[i], new Tile());
+        }
+
 
         // place treasure chest and key randomly
         // getRandomTile wont choose these tiles
@@ -68,10 +84,36 @@ public class Game {
         keyTile = getEmptyRandomTile();
 
         // Add a bunch of items to itemQueue
-        // Shuffle the queue
+        // TODO: Shuffle the queue
         // spawnItems until we hit max items
-        // TODO
+        Item toastItem = new MakeToastItem(context);
 
+        for(int i = 0; i < 25; i++) {
+            unplacedItemQueue.add(toastItem);
+        }
+
+        for(int i = 0; i < MAX_ITEMS; i++) {
+            spawnItem();
+        }
+
+        // Discover initial tiles
+        discoverNearbyTiles();
+    }
+
+    public static int getHexSize() {
+        return HEX_SIZE;
+    }
+
+    public HexMap getHexMap() {
+        return hexMap;
+    }
+
+    public Player getLocalPlayer() {
+        return players.get(localPlayer);
+    }
+
+    public Tile getTile(int tile) {
+        return tiles.get(tile);
     }
 
     public void update() {
@@ -82,6 +124,9 @@ public class Game {
 
         currentActions.clear();
 
+        // Allow player to make a move next turn
+        madeMove = false;
+
         // Check if player has key and is on treasure tile then that player wins
         for(Player p : players) {
             if(p.hasKey() && p.getTile() == treasureTile) {
@@ -89,10 +134,43 @@ public class Game {
             }
         }
 
+        // TODO: trigger traps
+
         // Give players item or key on there tile
         // If 2 players are on the same tile add item directly to Queue
         // If 2 players are together and 1 has key, put key on random tile
-        // TODO
+        for(Player p1 : players) {
+            for(Player p2 : players) {
+                if(p1 == p2) continue;
+
+                if(p1.getTile() == p2.getTile()) {
+                    Item item = tiles.get(p1.getTile()).getItem();
+
+                    if(item != null) {
+                        recycleItem(item);
+                        itemInhabitedTiles.remove(p1.getTile());
+                        tiles.get(p1.getTile()).setItem(null);
+                    }
+
+                    if(p1.hasKey() || keyTile == p1.getTile()) {
+                        keyTile = getEmptyRandomTile();
+                    }
+                }
+            }
+
+            if(p1.getTile() == keyTile) {
+                p1.setHasKey(true);
+                keyTile = -1;
+            }
+
+            Item item = tiles.get(p1.getTile()).getItem();
+
+            if(item != null) {
+                p1.giveItem(item);
+                itemInhabitedTiles.remove(p1.getTile());
+                tiles.get(p1.getTile()).setItem(null);
+            }
+        }
 
 
         // Spawn next item on queue in random tile if we have less than max items
@@ -100,28 +178,49 @@ public class Game {
             spawnItem();
         }
 
+        discoverNearbyTiles();
+
 
         // Give players there action points
         for(Player p : players) {
             p.giveActionPoint();
         }
+
+        // Tell view to redraw
+        onChange.doAction();
     }
 
     public void movePlayer(int tile) {
-        Action action = new MoveAction(players.get(localPlayer), tile);
-        currentActions.add(action);
+        if(!madeMove) {
+            Action action = new MoveAction(players.get(localPlayer), tile);
+            currentActions.add(action);
 
-        // Send action to other phones about players action
-        // TODO
+            // TODO: Send action to other phones about players action
+
+            madeMove = true;
+
+            if(waitingOnNumOpponent() == 0) {
+                update();
+            } else {
+                onChange.doAction();
+            }
+        }
     }
 
     public boolean useItem(int itemIndex) {
-        if(players.get(localPlayer).canUseItem(itemIndex)) {
+        if(!madeMove && players.get(localPlayer).canUseItem(itemIndex)) {
             Action action = new UseItemAction(players.get(localPlayer), this, itemIndex);
             currentActions.add(action);
 
-            // Send action to other phones about players action
-            // TODO
+            // TODO: Send action to other phones about players action
+
+            madeMove = true;
+
+            if(waitingOnNumOpponent() == 0) {
+                update();
+            } else {
+                onChange.doAction();
+            }
 
             return true;
         }
@@ -136,6 +235,10 @@ public class Game {
     public int waitingOnNumOpponent() {
         //TODO
         return 0;
+    }
+
+    public boolean hasMadeMove() {
+        return madeMove;
     }
 
     public State getGameState() {
@@ -179,8 +282,18 @@ public class Game {
 
     private void spawnItem() {
         int tile = getEmptyRandomTile();
-        tiles.get(tile).item = unplacedItemQueue.poll();
+        tiles.get(tile).setItem(unplacedItemQueue.poll());
         itemInhabitedTiles.add(tile);
     }
 
+    private void discoverNearbyTiles() {
+        int playerTile = players.get(localPlayer).getTile();
+
+        List<Integer> neighbours = hexMap.getNeighbours(playerTile);
+
+        tiles.get(playerTile).discover();
+        for(int i : neighbours) {
+            tiles.get(i).discover();
+        }
+    }
 }

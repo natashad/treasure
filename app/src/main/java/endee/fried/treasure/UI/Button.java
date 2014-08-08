@@ -10,9 +10,9 @@ import android.view.MotionEvent;
  */
 public class Button {
 
-    private final float centerX;
-    private final float centerY;
-    private final float radius;
+    private float centerX;
+    private float centerY;
+    private float radius;
     protected final Callback callback;
     private boolean isActive;
     protected boolean isClicked;
@@ -56,14 +56,20 @@ public class Button {
         return radius;
     }
 
+    public void setCenterX(float centerX) {
+        this.centerX = centerX;
+    }
+
+    public void setCenterY(float centerY) {
+        this.centerY = centerY;
+    }
+
+    public void setRadius(float radius) {
+        this.radius = radius;
+    }
+
     public void draw(Canvas canvas, Paint paint) {
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(isActive ? (isClicked? Color.GREEN : Color.RED ): Color.GRAY);
-        canvas.drawCircle(getX(), getY(), radius, paint);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(Math.min(10f, radius / 20f));
-        canvas.drawCircle(getX(), getY(), radius, paint);
+        drawButton(canvas, paint, radius, isActive ? (isClicked? Color.GREEN : Color.RED ): Color.GRAY);
     }
 
     public boolean update(float touchX, float touchY, int eventAction) {
@@ -91,5 +97,15 @@ public class Button {
         }
 
         return false;
+    }
+
+    protected void drawButton(Canvas canvas, Paint paint, float radius, int color) {
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(color);
+        canvas.drawCircle(getX(), getY(), radius, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.BLACK);
+        paint.setStrokeWidth(Math.min(10f, radius / 20f));
+        canvas.drawCircle(getX(), getY(), radius, paint);
     }
 }
