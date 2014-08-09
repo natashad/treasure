@@ -7,8 +7,6 @@ import java.util.List;
  * Created by leslie on 05/08/14.
  */
 public class Player {
-    private final static int MAX_ACTION_POINTS = 10;
-
     private final boolean local;
     private final List<Item> items;
 
@@ -39,8 +37,10 @@ public class Player {
     }
 
     public void giveActionPoint() {
-        actionPoints = Math.min(MAX_ACTION_POINTS, actionPoints + 1);
+        actionPoints = Math.min(Game.MAX_ACTION_POINTS, actionPoints + 1);
     }
+
+    public int getActionPoints() { return actionPoints; }
 
     public void setHasKey(boolean hasKey) {
         this.hasKey = hasKey;

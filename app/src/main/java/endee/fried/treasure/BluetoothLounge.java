@@ -39,6 +39,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import endee.fried.treasure.UI.GameActivity;
 
 /**
  * This is the main Activity that displays the current chat session.

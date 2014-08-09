@@ -42,6 +42,10 @@ public class TileButton extends Button {
         }
         if(game.getTile(tileID).getItem() != null) {
             drawButton(canvas, paint, getRadius()/4, Color.RED);
+        } else if(game.getKeyTile() == tileID) {
+            drawButton(canvas, paint, getRadius()/4, Color.YELLOW);
+        } else if(game.getTreasureTile() == tileID) {
+            drawButton(canvas, paint, getRadius()/4, Color.MAGENTA);
         }
     }
 

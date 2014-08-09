@@ -12,7 +12,6 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 
-import endee.fried.treasure.HexMap;
 import endee.fried.treasure.UI.Callback;
 
 /**
@@ -22,6 +21,7 @@ public class Game {
     // todo: change these based on number of players/options
     private final static int HEX_SIZE = 15;
     private final static int MAX_ITEMS = 10;
+    public final static int MAX_ACTION_POINTS = 10;
 
     public enum State {
         IN_PROGRESS,
@@ -112,6 +112,10 @@ public class Game {
         return players.get(localPlayer);
     }
 
+    public int getKeyTile() { return keyTile; }
+
+    public int getTreasureTile() { return treasureTile; }
+
     public Tile getTile(int tile) {
         return tiles.get(tile);
     }
@@ -191,7 +195,7 @@ public class Game {
     }
 
     public void movePlayer(int tile) {
-        if(!madeMove) {
+        if(!madeMove && state == State.IN_PROGRESS) {
             Action action = new MoveAction(players.get(localPlayer), tile);
             currentActions.add(action);
 
@@ -208,7 +212,7 @@ public class Game {
     }
 
     public boolean useItem(int itemIndex) {
-        if(!madeMove && players.get(localPlayer).canUseItem(itemIndex)) {
+        if(!madeMove && state == State.IN_PROGRESS &&  players.get(localPlayer).canUseItem(itemIndex)) {
             Action action = new UseItemAction(players.get(localPlayer), this, itemIndex);
             currentActions.add(action);
 

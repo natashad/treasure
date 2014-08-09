@@ -7,6 +7,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
+import endee.fried.treasure.UI.GameActivity;
+
 /**
  * Created by natasha on 2014-08-08.
  */

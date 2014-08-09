@@ -1,4 +1,4 @@
-package endee.fried.treasure;
+package endee.fried.treasure.GameLogic;
 
 import android.util.Log;
 
