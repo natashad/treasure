@@ -5,7 +5,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="menu_title">Main Menu</string>
 
-    <!--  BluetoothChat -->
+    <!-- BluetoothChat -->
     <string name="send">Send</string>
     <string name="not_connected">You are not connected to a device</string>
     <string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving Bluetooth Chat.</string>
@@ -13,7 +13,12 @@
     <string name="title_connected_to">connected: </string>
     <string name="title_not_connected">not connected</string>
 
-    <!--  DeviceListActivity -->
+    <!-- Game invitation -->
+    <string name="game_invitation">You have been invited to a game.</string>
+    <string name="accept_invitation">Accept</string>
+    <string name="decline_invitation">Decline</string>
+
+    <!-- DeviceListActivity -->
     <string name="scanning">scanning for devices...</string>
     <string name="select_device">select a device to connect</string>
     <string name="none_paired">No devices have been paired</string>
@@ -25,5 +30,7 @@
     <!-- Options Menu -->
     <string name="connect">Connect a device</string>
     <string name="discoverable">Make discoverable</string>
+    <string name="title_activity_invitee_lounge">InviteeLounge</string>
+    <string name="action_settings">Settings</string>
 
 </resources>

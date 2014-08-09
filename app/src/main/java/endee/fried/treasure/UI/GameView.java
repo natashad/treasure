@@ -46,9 +46,9 @@ public class GameView extends SurfaceView {
 
 
 
-    public GameView(final Context context) {
+    public GameView(final Context context, long seed) {
         super(context);
-        game = new Game(1, 0, 0, context, new Callback() {
+        game = new Game(1, 0, seed, context, new Callback() {
             @Override
             public void doAction() {
                 Log.d("", "Invalidating in game callback");

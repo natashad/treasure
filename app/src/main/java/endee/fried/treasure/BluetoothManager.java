@@ -53,6 +53,8 @@ public class BluetoothManager {
     private final Handler mHandler;
     private AcceptThread mAcceptThread;
     private ConnectThread mConnectThread;
+
+    //TODO: Make this an array/Hashmap for all connections
     private ConnectedThread mConnectedThread;
     private int mState;
 
@@ -61,6 +63,8 @@ public class BluetoothManager {
     public static final int STATE_LISTEN = 1;     // now listening for incoming connections
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
+
+    public static final String GAME_INVITATION = "__invitation_to_treasure__";
 
     /**
      * Constructor. Prepares a new BluetoothChat session.
@@ -77,12 +81,18 @@ public class BluetoothManager {
      * Set the current state of the chat connection
      * @param state  An integer defining the current connection state
      */
-    private synchronized void setState(int state) {
+    private synchronized void setState(int state, String[] data) {
         if (D) Log.d(TAG, "setState() " + mState + " -> " + state);
         mState = state;
 
         // Give the new state to the Handler so the UI Activity can update
-        mHandler.obtainMessage(BluetoothLounge.MESSAGE_STATE_CHANGE, state, -1).sendToTarget();
+        Message msg = mHandler.obtainMessage(BluetoothLounge.MESSAGE_STATE_CHANGE, state, -1);
+        if (data != null) {
+            Bundle bundle = new Bundle();
+            bundle.putString(data[0], data[1]);
+            msg.setData(bundle);
+        }
+        msg.sendToTarget();
     }
 
     /**
@@ -108,7 +118,7 @@ public class BluetoothManager {
             mAcceptThread = new AcceptThread();
             mAcceptThread.start();
         }
-        setState(STATE_LISTEN);
+        setState(STATE_LISTEN, null);
     }
 
     /**
@@ -129,7 +139,7 @@ public class BluetoothManager {
         // Start the thread to connect with the given device
         mConnectThread = new ConnectThread(device);
         mConnectThread.start();
-        setState(STATE_CONNECTING);
+        setState(STATE_CONNECTING, new String[]{BluetoothLounge.DEVICE_ADDRESS, device.getAddress()});
     }
 
     /**
@@ -157,10 +167,11 @@ public class BluetoothManager {
         Message msg = mHandler.obtainMessage(BluetoothLounge.MESSAGE_DEVICE_NAME);
         Bundle bundle = new Bundle();
         bundle.putString(BluetoothLounge.DEVICE_NAME, device.getName());
+        bundle.putString(BluetoothLounge.DEVICE_ADDRESS, device.getAddress());
         msg.setData(bundle);
         mHandler.sendMessage(msg);
 
-        setState(STATE_CONNECTED);
+        setState(STATE_CONNECTED, new String[]{BluetoothLounge.DEVICE_ADDRESS, device.getAddress()});
     }
 
     /**
@@ -171,7 +182,7 @@ public class BluetoothManager {
         if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
         if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
         if (mAcceptThread != null) {mAcceptThread.cancel(); mAcceptThread = null;}
-        setState(STATE_NONE);
+        setState(STATE_NONE, null);
     }
 
     /**
@@ -195,7 +206,7 @@ public class BluetoothManager {
      * Indicate that the connection attempt failed and notify the UI Activity.
      */
     private void connectionFailed() {
-        setState(STATE_LISTEN);
+        setState(STATE_LISTEN, null);
 
         // Send a failure message back to the Activity
         Message msg = mHandler.obtainMessage(BluetoothLounge.MESSAGE_TOAST);
@@ -209,7 +220,7 @@ public class BluetoothManager {
      * Indicate that the connection was lost and notify the UI Activity.
      */
     private void connectionLost() {
-        setState(STATE_LISTEN);
+        setState(STATE_LISTEN, null);
 
         // Send a failure message back to the Activity
         Message msg = mHandler.obtainMessage(BluetoothLounge.MESSAGE_TOAST);

@@ -43,11 +43,16 @@
             />
     </RelativeLayout>
 
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/connectedList" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start Game"
-        android:id="@+id/startButton"
+        android:text="Invite to Game"
+        android:id="@+id/inviteButton"
         android:layout_gravity="center_horizontal" />
 
     <!--    <ListView android:id="@+id/in"

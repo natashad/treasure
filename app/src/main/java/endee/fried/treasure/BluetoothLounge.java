@@ -19,7 +19,6 @@ package endee.fried.treasure;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,9 +28,17 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckedTextView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
 
 /**
  * This is the main Activity that displays the current chat session.
@@ -50,11 +57,12 @@ public class BluetoothLounge extends Activity {
 
     // Key names received from the BluetoothChatService Handler
     public static final String DEVICE_NAME = "device_name";
+    public static final String DEVICE_ADDRESS = "device_address";
     public static final String TOAST = "toast";
 
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE = 1;
-    private static final int REQUEST_ENABLE_BT = 2;
+    protected static final int REQUEST_ENABLE_BT = 2;
 
     // Layout Views
     private TextView mTitle;
@@ -73,6 +81,16 @@ public class BluetoothLounge extends Activity {
     // Member object for the chat services
     private BluetoothManager mBluetoothManager = null;
 
+    // Connected devices in the form of Address:Name pairs.
+    private HashMap<String, String> mConnectedDevices = new HashMap<String, String>();
+
+    private ArrayList<String> mInvitedDevices = new ArrayList<String>();
+
+    // List of Connected devices in the UI
+    private ArrayAdapter<BluetoothConnection> mConnectedListAdapter = null;
+
+    // The seed used for starting a game.
+    private long mSeed;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -97,10 +115,18 @@ public class BluetoothLounge extends Activity {
             return;
         }
 
-        ((Button) findViewById(R.id.startButton)).setOnClickListener(new View.OnClickListener() {
+        ((Button) findViewById(R.id.inviteButton)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((Context)BluetoothLounge.this).startActivity(new Intent(BluetoothLounge.this, GameActivity.class));
+                mSeed = new Random().nextLong();
+//                ((Context)BluetoothLounge.this).startActivity(new Intent(BluetoothLounge.this, GameActivity.class));
+                for (int i = 0; i < mInvitedDevices.size(); i++) {
+                    Log.d(TAG, mInvitedDevices.get(i));
+                    sendMessage(BluetoothManager.GAME_INVITATION + mSeed);
+                }
+                Intent intent = new Intent(BluetoothLounge.this, GameActivity.class);
+                intent.putExtra(GameInvitationFragment.GAME_SEED, mSeed);
+                BluetoothLounge.this.startActivity(intent);
             }
         });
     }
@@ -160,13 +186,38 @@ public class BluetoothLounge extends Activity {
 //                sendMessage(message);
 //            }
 //        });
+        ListView connectedDevicesList = (ListView) findViewById(R.id.connectedList);
+        mConnectedListAdapter = new ArrayAdapter<BluetoothConnection>(this, R.layout.connected_devices);
+        connectedDevicesList.setAdapter(mConnectedListAdapter);
 
         // Initialize the BluetoothChatService to perform bluetooth connections
         mBluetoothManager = new BluetoothManager(this, mHandler);
 
+        // Set an onClick Listener to Check and Uncheck items for invitation
+        connectedDevicesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                CheckedTextView ctv = (CheckedTextView) view;
+                String address = ((BluetoothConnection)adapterView.getItemAtPosition(i)).getAddress();
+                if (ctv.isChecked()) {
+                    ctv.setChecked(false);
+                    if (mInvitedDevices.contains(address)) {
+                        mInvitedDevices.remove(address);
+                    }
+                }
+                else {
+                    ctv.setChecked(true);
+                    if (!mInvitedDevices.contains(address)) {
+                        mInvitedDevices.add(address);
+                    }
+                }
+            }
+        });
+
 //        // Initialize the buffer for outgoing messages
 //        mOutStringBuffer = new StringBuffer("");
     }
+
 
     @Override
     public synchronized void onPause() {
@@ -198,28 +249,24 @@ public class BluetoothLounge extends Activity {
         }
     }
 
-//    /**
-//     * Sends a message.
-//     * @param message  A string of text to send.
-//     */
-//    private void sendMessage(String message) {
-//        // Check that we're actually connected before trying anything
-//        if (mBluetoothManager.getState() != BluetoothChatService.STATE_CONNECTED) {
-//            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        // Check that there's actually something to send
-//        if (message.length() > 0) {
-//            // Get the message bytes and tell the BluetoothChatService to write
-//            byte[] send = message.getBytes();
-//            mBluetoothManager.write(send);
-//
-//            // Reset out string buffer to zero and clear the edit text field
-//            mOutStringBuffer.setLength(0);
-//            mOutEditText.setText(mOutStringBuffer);
-//        }
-//    }
+    /**
+     * Sends a message.
+     * @param message  A string of text to send.
+     */
+    private void sendMessage(String message) {
+        // Check that we're actually connected before trying anything
+        if (mBluetoothManager.getState() != BluetoothManager.STATE_CONNECTED) {
+            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check that there's actually something to send
+        if (message.length() > 0) {
+            // Get the message bytes and tell the BluetoothChatService to write
+            byte[] send = message.getBytes();
+            mBluetoothManager.write(send);
+        }
+    }
 
 //    // The action listener for the EditText widget, to listen for the return key
 //    private TextView.OnEditorActionListener mWriteListener =
@@ -246,6 +293,8 @@ public class BluetoothLounge extends Activity {
                         case BluetoothManager.STATE_CONNECTED:
                             mTitle.setText(R.string.title_connected_to);
                             mTitle.append(mConnectedDeviceName);
+                            String address = msg.getData().getString(DEVICE_ADDRESS);
+                            mConnectedListAdapter.add(new BluetoothConnection(mConnectedDeviceName, address));
 //                            mConversationArrayAdapter.clear();
                             break;
                         case BluetoothManager.STATE_CONNECTING:
@@ -272,6 +321,9 @@ public class BluetoothLounge extends Activity {
                 case MESSAGE_DEVICE_NAME:
                     // save the connected device's name
                     mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
+                    String deviceName = msg.getData().getString(DEVICE_NAME);
+                    String address = msg.getData().getString(DEVICE_ADDRESS);
+                    mConnectedDevices.put(address, deviceName);
                     Toast.makeText(getApplicationContext(), "Connected to "
                             + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
                     break;
@@ -333,6 +385,30 @@ public class BluetoothLounge extends Activity {
                 return true;
         }
         return false;
+    }
+
+    public class BluetoothConnection {
+
+        private String name;
+        private String address;
+
+        public BluetoothConnection(String name, String address) {
+            this.name = name;
+            this.address = address;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public String getAddress() {
+            return this.address;
+        }
+
+        @Override
+        public String toString() {
+            return this.name;
+        }
     }
 
 }

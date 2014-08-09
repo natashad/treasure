@@ -13,7 +13,9 @@ public class GameActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        View view = new GameView(this);
+        Bundle extras = getIntent().getExtras();
+        long seed = extras.getLong(GameInvitationFragment.GAME_SEED);
+        View view = new GameView(this, seed);
         view.setBackgroundColor(Color.WHITE);
         setContentView(view);
     }

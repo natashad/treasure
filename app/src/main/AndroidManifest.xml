@@ -3,6 +3,7 @@
     package="endee.fried.treasure" >
 
     <uses-sdk android:minSdkVersion="6" />
+
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
@@ -10,24 +11,33 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
-        <activity android:name=".MainMenuActivity"
+        <activity
+            android:name=".MainMenuActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".GameActivity"
+        <activity
+            android:name=".GameActivity"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
         </activity>
-        <activity android:name=".BluetoothLounge"
-            android:label="@string/app_name"
-            android:configChanges="orientation|keyboardHidden">
+        <activity
+            android:name=".BluetoothLounge"
+            android:configChanges="orientation|keyboardHidden"
+            android:label="@string/app_name" >
         </activity>
-        <activity android:name=".DeviceListActivity"
+        <activity
+            android:name=".DeviceListActivity"
+            android:configChanges="orientation|keyboardHidden"
             android:label="@string/select_device"
-            android:theme="@android:style/Theme.Dialog"
-            android:configChanges="orientation|keyboardHidden" />
+            android:theme="@android:style/Theme.Dialog" />
+        <activity
+            android:name=".InviteeLounge"
+            android:label="@string/title_activity_invitee_lounge" >
+        </activity>
     </application>
 
 </manifest>
