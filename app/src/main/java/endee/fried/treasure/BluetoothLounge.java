@@ -33,6 +33,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import endee.fried.treasure.UI.GameActivity;
+
 /**
  * This is the main Activity that displays the current chat session.
  */

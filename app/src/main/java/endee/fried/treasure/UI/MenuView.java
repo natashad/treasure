@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.List;
 
 import endee.fried.treasure.BluetoothLounge;
-import endee.fried.treasure.GameActivity;
 
 /**
  * Created by natasha on 2014-08-05.

@@ -2,40 +2,32 @@ package endee.fried.treasure.UI;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
+import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.SurfaceView;
-import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import endee.fried.treasure.GameLogic.Game;
-import endee.fried.treasure.GameLogic.Player;
 
 /**
  * Created by natasha on 2014-08-05.
  */
-public class GameView extends SurfaceView {
+public class MapView extends SurfaceView {
     private final static int DIAMETER = 100;
 
     private final static float START_MAP_WIDTH = 5 * DIAMETER;
     private final static float MAP_WIDTH = Game.getHexSize();
     private final static float MIN_MAP_WIDTH = 3 * DIAMETER;
-    private final static float TILE_WIDTH = MAP_WIDTH * DIAMETER + 0.5f;
+    private final static float TILE_WIDTH = MAP_WIDTH * DIAMETER + DIAMETER / 2f;
     private final static float TILE_HEIGHT = MAP_WIDTH * DIAMETER * 0.878f;
 
     private Game game;
 
-    private final HashMap<Integer, TileButton> buttons = new HashMap<Integer,TileButton>();
-    private final List<Button> activeButtons = new ArrayList<Button>();
-
-    private final Button useItemButton;
+    private final HashMap<Integer, TileButton> buttons;
 
     private final ScaleGestureDetector scaleDetector;
     private final GestureDetector panDetector;
@@ -44,20 +36,47 @@ public class GameView extends SurfaceView {
     private float scale, minScale, maxScale;
     private float offsetX, offsetY;
 
+    private final int screenPixelWidth;
+    private final int screenPixelHeight;
 
-
-    public GameView(final Context context) {
+    public MapView(final Context context) {
         super(context);
-        game = new Game(1, 0, 0, context, new Callback() {
-            @Override
-            public void doAction() {
-                Log.d("", "Invalidating in game callback");
-                invalidate();
-            }
-        });
 
-        scale = 1.0f;
+        buttons = new HashMap<Integer,TileButton>();
+        scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        panDetector = new GestureDetector(context, new PanListener());
+
+        screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
+        screenPixelHeight = context.getResources().getDisplayMetrics().heightPixels;
+    }
+
+    public MapView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        buttons = new HashMap<Integer,TileButton>();
+        scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        panDetector = new GestureDetector(context, new PanListener());
+
+        screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
+        screenPixelHeight = context.getResources().getDisplayMetrics().heightPixels;
+    }
+
+    public MapView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+
+        buttons = new HashMap<Integer,TileButton>();
+        scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        panDetector = new GestureDetector(context, new PanListener());
+
+        screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
+        screenPixelHeight = context.getResources().getDisplayMetrics().heightPixels;
+    }
+
+    public void init(Game _game) {
+        game = _game;
+
         final int[] allTiles = game.getHexMap().getAllTiles();
+
         for (int i = 0; i < allTiles.length; i++) {
             final int index = i;
             float[] loc = game.getHexMap().getLocation(allTiles[i]);
@@ -70,21 +89,7 @@ public class GameView extends SurfaceView {
             }, game, allTiles[i]));
         }
 
-        scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
-        panDetector = new GestureDetector(context, new PanListener());
-
-
-        useItemButton = new Button(540, 1400, 300, new Callback() {
-            @Override
-            public void doAction() {
-                Player player = game.getLocalPlayer();
-                if(player.getNumItems() > 0 && player.canUseItem(0)) {
-                    game.useItem(0);
-                } else {
-                    Toast.makeText(context, "You don't have an item", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        calculateScaleAndAspectRatio();
     }
 
 
@@ -103,12 +108,11 @@ public class GameView extends SurfaceView {
         }
 
         canvas.restore();
+    }
 
-        paint.setColor(Color.BLACK);
-        paint.setStyle(Paint.Style.FILL);
-        canvas.drawRect(0, mapScreenHeight, getWidth(), getHeight(), paint);
-
-        useItemButton.draw(canvas, paint);
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        setMeasuredDimension(screenPixelWidth, (int)mapScreenHeight);
     }
 
     @Override
@@ -124,30 +128,33 @@ public class GameView extends SurfaceView {
             for (Button b : buttons.values()) {
                 changed = b.update(event.getX() / scale + offsetX, event.getY() / scale + offsetY, motionEvent) || changed;
             }
-        } else {
-            changed = useItemButton.update(event.getX(), event.getY(), motionEvent) || changed;
         }
 
         if(changed) this.invalidate();
         return true;
     }
 
-    @Override
-    protected void onSizeChanged (int w, int h, int oldw, int oldh) {
-        minScale = w / TILE_WIDTH;
-        maxScale = w / MIN_MAP_WIDTH;
+    private void calculateScaleAndAspectRatio() {
+        minScale = screenPixelWidth / TILE_WIDTH;
+        maxScale = screenPixelWidth / MIN_MAP_WIDTH;
 
-        scale = w / START_MAP_WIDTH;
+        scale = screenPixelWidth / START_MAP_WIDTH;
 
-        mapScreenHeight = w * TILE_HEIGHT/TILE_WIDTH;
+        mapScreenHeight = screenPixelWidth * TILE_HEIGHT/TILE_WIDTH;
 
         // Position view to the centre of the map
         offsetX = (TILE_WIDTH / 2f - START_MAP_WIDTH / 2f) + DIAMETER / 2f;
         offsetY = TILE_HEIGHT / 2f - (TILE_HEIGHT/TILE_WIDTH * START_MAP_WIDTH) / 2f;
+    }
 
-        useItemButton.setCenterX(w / 2);
-        useItemButton.setCenterY(mapScreenHeight + (h - mapScreenHeight) / 2);
-        useItemButton.setRadius(w / 4);
+    private void boundPanAndZoom() {
+        float currentTileWidth = getWidth() / scale;
+        float currentTileHeight = mapScreenHeight / scale;
+
+        offsetX = Math.max(0, Math.min(offsetX, TILE_WIDTH - currentTileWidth));
+        offsetY = Math.max(0, Math.min(offsetY, TILE_HEIGHT - currentTileHeight));
+
+        scale = Math.max(minScale, Math.min(scale, maxScale));
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -180,15 +187,5 @@ public class GameView extends SurfaceView {
             invalidate();
             return true;
         }
-    }
-
-    private void boundPanAndZoom() {
-        float currentTileWidth = getWidth() / scale;
-        float currentTileHeight = mapScreenHeight / scale;
-
-        offsetX = Math.max(0, Math.min(offsetX, TILE_WIDTH - currentTileWidth));
-        offsetY = Math.max(0, Math.min(offsetY, TILE_HEIGHT - currentTileHeight));
-
-        scale = Math.max(minScale, Math.min(scale, maxScale));
     }
 }
