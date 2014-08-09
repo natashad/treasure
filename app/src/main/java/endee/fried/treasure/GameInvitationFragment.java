@@ -27,6 +27,7 @@ public class GameInvitationFragment extends DialogFragment {
                 .setPositiveButton(R.string.accept_invitation, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+
                         Intent intent = new Intent(getActivity(), GameActivity.class);
                         intent.putExtra(GameInvitationFragment.GAME_SEED, seed);
                         getActivity().startActivity(intent);

@@ -115,7 +115,14 @@ public class MainMenuActivity extends Activity {
                         Bundle bundle = new Bundle();
                         bundle.putLong(GameInvitationFragment.GAME_SEED, seed);
                         invitation.setArguments(bundle);
-                        invitation.show(MainMenuActivity.this.getFragmentManager(), TAG);
+                        // Doing this check to hopefully prevent the exception I was getting:
+                        // java.lang.IllegalStateException: Can not perform this action after
+                        // onSaveInstanceState dialogfragment
+                        if (!MainMenuActivity.this.isFinishing())
+                        {
+                            invitation.show(MainMenuActivity.this.getFragmentManager(), TAG);
+                        }
+
                     }
                     break;
                 case BluetoothLounge.MESSAGE_DEVICE_NAME:
