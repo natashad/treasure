@@ -10,8 +10,6 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Random;
-
 import endee.fried.treasure.BluetoothLounge;
 import endee.fried.treasure.BluetoothManager;
 import endee.fried.treasure.GameInvitationFragment;
@@ -37,10 +35,6 @@ public class GameActivity extends Activity {
         long seed = extras.getLong(GameInvitationFragment.GAME_SEED);
         int playerNumber = extras.getInt(InviteeLounge.PLAYER_NUMBER_PRE);
         int numPlayers = extras.getInt(InviteeLounge.NUMBER_OF_PLAYERS);
-
-        if (seed == -1) {
-            seed = new Random().nextLong();
-        }
 
         Log.i(TAG, "Random seed: " + seed);
 
