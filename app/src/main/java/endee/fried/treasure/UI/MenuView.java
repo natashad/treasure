@@ -5,16 +5,10 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pDeviceList;
-import android.net.wifi.p2p.WifiP2pManager;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
-import android.view.View;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import endee.fried.treasure.BluetoothLounge;
@@ -24,21 +18,19 @@ import endee.fried.treasure.InviteeLounge;
 /**
  * Created by natasha on 2014-08-05.
  */
-public class MenuView extends SurfaceView implements WifiP2pManager.PeerListListener{
-    List<Button> buttons;
-    private Context context;
+public class MenuView extends SurfaceView {
+    private final List<Button> _buttons;
 
     public MenuView(Context context) {
         super(context);
         setBackgroundColor(Color.WHITE);
 
-        this.context = context;
+        int screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
+        int screenPixelHeight = context.getResources().getDisplayMetrics().heightPixels;
 
-        buttons = new ArrayList<Button>();
+        _buttons = new ArrayList<Button>();
 
-        final View myView = this;
-
-        buttons.add(new Button(100, 100, 100, new Callback() {
+        _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.1f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Start Game", new Callback() {
             @Override
             public void doAction() {
                 Intent intent = new Intent(getContext(), GameActivity.class);
@@ -49,18 +41,10 @@ public class MenuView extends SurfaceView implements WifiP2pManager.PeerListList
             }
         }));
 
-        buttons.add(new Button(400, 400, 100, new Callback() {
+        _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.25f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Host Game", new Callback() {
             @Override
             public void doAction() {
-                Log.e("","Pressed button 2!");
                 getContext().startActivity(new Intent(getContext(), BluetoothLounge.class));
-            }
-        }));
-
-        buttons.add(new Button(200, 700, 100, new Callback() {
-            @Override
-            public void doAction() {
-                Log.e("","Pressed button 3!");
             }
         }));
     }
@@ -71,7 +55,7 @@ public class MenuView extends SurfaceView implements WifiP2pManager.PeerListList
 
         Paint paint = new Paint();
 
-        for(Button b : buttons) {
+        for(Button b : _buttons) {
             b.draw(canvas, paint);
         }
     }
@@ -80,21 +64,11 @@ public class MenuView extends SurfaceView implements WifiP2pManager.PeerListList
     public boolean onTouchEvent(MotionEvent event) {
         boolean changed = false;
 
-        for(Button b: buttons) {
+        for(Button b: _buttons) {
             changed = b.update(event.getX(), event.getY(), event.getAction()) || changed;
         }
 
         if(changed) this.invalidate();
         return true;
-    }
-
-    @Override
-    public void onPeersAvailable(WifiP2pDeviceList peerList) {
-        Collection<WifiP2pDevice> deviceList = peerList.getDeviceList();
-        for (WifiP2pDevice device : deviceList) {
-            Log.d("" , device.deviceName + " " + device.deviceAddress);
-        }
-
-
     }
 }

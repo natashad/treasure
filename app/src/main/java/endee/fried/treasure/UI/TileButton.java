@@ -12,7 +12,7 @@ import endee.fried.treasure.GameLogic.Player;
 /**
  * Created by natasha on 2014-08-05.
  */
-public class TileButton extends Button {
+public class TileButton extends CircleButton {
 
     private Game _game;
     private int _tileID;
@@ -26,14 +26,14 @@ public class TileButton extends Button {
     @Override
     public void draw(Canvas canvas, Paint paint) {
         if(_game.getLocalPlayer().getTile() == _tileID) {
-            drawButton(canvas, paint, getRadius(), Color.YELLOW);
+            drawButton(canvas, paint, Color.YELLOW);
         } else if(isNeighbour() && !_game.hasMadeMove()) {
             super.draw(canvas, paint);
         } else {
             if(_game.getTile(_tileID).isDiscovered()) {
-                drawButton(canvas, paint, getRadius(), Color.GRAY);
+                drawButton(canvas, paint, Color.GRAY);
             } else {
-                drawButton(canvas, paint, getRadius(), Color.BLACK);
+                drawButton(canvas, paint, Color.BLACK);
             }
         }
 
@@ -41,18 +41,18 @@ public class TileButton extends Button {
             Player p = _game.getPlayer(i);
             if(p.getTile() != _tileID || p == _game.getLocalPlayer()) continue;
 
-            drawButton(canvas, paint, getRadius() * 0.67f, Color.BLUE);
+            drawCircle(canvas, paint, getRadius() * 0.67f, Color.BLUE);
         }
 
         if(_game.getTile(_tileID).getLastKnownItem() != null) {
-            drawButton(canvas, paint, getRadius()/2, Color.CYAN);
+            drawCircle(canvas, paint, getRadius() / 2, Color.CYAN);
         }
         if(_game.getTile(_tileID).getItem() != null) {
-            drawButton(canvas, paint, getRadius()/4, Color.RED);
+            drawCircle(canvas, paint, getRadius() / 4, Color.RED);
         } else if(_game.getKeyTile() == _tileID) {
-            drawButton(canvas, paint, getRadius()/4, Color.YELLOW);
+            drawCircle(canvas, paint, getRadius() / 4, Color.YELLOW);
         } else if(_game.getTreasureTile() == _tileID) {
-            drawButton(canvas, paint, getRadius()/4, Color.MAGENTA);
+            drawCircle(canvas, paint, getRadius() / 4, Color.MAGENTA);
         }
     }
 
@@ -61,7 +61,7 @@ public class TileButton extends Button {
         if(isNeighbour()) {
             return super.update(touchX, touchY, eventAction);
         } else {
-            isClicked = false;
+            _clicked = false;
             return true;
         }
     }
@@ -71,5 +71,11 @@ public class TileButton extends Button {
         List<Integer> neighbours = _game.getHexMap().getNeighbours(playerTile);
 
         return neighbours.contains(_tileID);
+    }
+
+    private void drawCircle(Canvas canvas, Paint paint, float radius, int color) {
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(color);
+        canvas.drawCircle(getX(), getY(), radius, paint);
     }
 }

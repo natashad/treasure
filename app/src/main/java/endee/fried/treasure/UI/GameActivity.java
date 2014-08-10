@@ -47,7 +47,7 @@ public class GameActivity extends Activity {
         _game = new Game(numPlayers, playerNumber, seed, this, new Callback() {
             @Override
             public void doAction() {
-                Log.d("", "Invalidating in game callback");
+                Log.d("", "Invalidating in game _callback");
                 findViewById(R.id.map_view).invalidate();
                 findViewById(R.id.action_point_view).invalidate();
                 findViewById(R.id.status_view).invalidate();

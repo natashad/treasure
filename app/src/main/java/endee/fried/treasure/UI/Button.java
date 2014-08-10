@@ -8,23 +8,36 @@ import android.view.MotionEvent;
 /**
  * Created by natasha on 2014-08-05.
  */
-public class Button {
+public abstract class Button {
 
-    private float centerX;
-    private float centerY;
-    private float radius;
-    protected final Callback callback;
-    private boolean isActive;
-    protected boolean isClicked;
+    private float _centerX;
+    private float _centerY;
 
+    private boolean _active;
+    protected boolean _clicked;
 
-    public Button(float centerX, float centerY, float radius, Callback callback) {
-        this.centerX = centerX;
-        this.centerY = centerY;
-        this.radius = radius;
-        this.callback = callback;
-        this.isActive = true;
-        this.isClicked = false;
+    protected final Callback _onClick;
+
+    public Button(float centerX, float centerY, Callback onClick) {
+        _centerX = centerX;
+        _centerY = centerY;
+        _onClick = onClick;
+        _active = true;
+        _clicked = false;
+    }
+
+    public void setActive(boolean _active) {
+        this._active = _active;
+    }
+
+    public boolean isActive() { return _active; }
+
+    public float getX() {
+        return _centerX;
+    }
+
+    public float getY() {
+        return _centerY;
     }
 
     /**
@@ -32,54 +45,21 @@ public class Button {
      * @param x
      * @param y
      */
-    private boolean isInBounds(float x, float y) {
-        return Math.pow((x - centerX), 2) + Math.pow((y - centerY), 2) < Math.pow(radius,2);
-    }
+    protected abstract boolean isInBounds(float x, float y);
 
-    public void setActive(boolean active) {
-        this.isActive = active;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public float getX() {
-        return centerX;
-    }
-
-    public float getY() {
-        return centerY;
-    }
-
-    public float getRadius() {
-        return radius;
-    }
-
-    public void setCenterX(float centerX) {
-        this.centerX = centerX;
-    }
-
-    public void setCenterY(float centerY) {
-        this.centerY = centerY;
-    }
-
-    public void setRadius(float radius) {
-        this.radius = radius;
-    }
+    protected abstract void drawButton(Canvas canvas, Paint paint, int color);
 
     public void draw(Canvas canvas, Paint paint) {
-        drawButton(canvas, paint, radius, isActive ? (isClicked? Color.GREEN : Color.RED ): Color.GRAY);
+        drawButton(canvas, paint, _active ? (_clicked ? Color.GREEN : Color.RED ): Color.GRAY);
     }
 
     public boolean update(float touchX, float touchY, int eventAction) {
-        if(!isActive) return false;
+        if(!_active) return false;
 
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
-
                 if (isInBounds(touchX, touchY)) {
-                    isClicked = true;
+                    _clicked = true;
                     return true;
                 }
                 break;
@@ -88,24 +68,14 @@ public class Button {
                 break;
 
             case MotionEvent.ACTION_UP:
-                if (isClicked && isInBounds(touchX, touchY)) {
-                    callback.doAction();
+                if (_clicked && isInBounds(touchX, touchY)) {
+                    _onClick.doAction();
                 }
 
-                isClicked = false;
+                _clicked = false;
                 return true;
         }
 
         return false;
-    }
-
-    protected void drawButton(Canvas canvas, Paint paint, float radius, int color) {
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(color);
-        canvas.drawCircle(getX(), getY(), radius, paint);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(Math.min(10f, radius / 20f));
-        canvas.drawCircle(getX(), getY(), radius, paint);
     }
 }
