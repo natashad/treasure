@@ -25,6 +25,12 @@
         android:layout_height="wrap_content"
         android:background="@android:color/white" />
 
+    <endee.fried.treasure.UI.StatusView
+        android:id="@+id/status_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/holo_orange_dark" />
+
     <endee.fried.treasure.UI.ActionPointView
         android:id="@+id/action_point_view"
         android:layout_width="match_parent"
@@ -64,13 +70,7 @@
 
         </LinearLayout>
 
-        </LinearLayout>
-
-    <endee.fried.treasure.UI.StatusView
-        android:id="@+id/status_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/holo_orange_dark" />
+    </LinearLayout>
 
 
 </LinearLayout>

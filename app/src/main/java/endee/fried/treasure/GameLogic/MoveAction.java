@@ -1,18 +1,39 @@
 package endee.fried.treasure.GameLogic;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Created by leslie on 08/08/14.
  */
 public class MoveAction extends Action {
-    private int tile;
+    public final static String TYPE = "MOVE";
+    public final static String TILE_KEY = "Tile";
 
-    public MoveAction(Player player, int tile) {
+    private int _tile;
+
+    public MoveAction(int player, int tile) {
         super(player);
-        this.tile = tile;
+        _tile = tile;
     }
 
     @Override
-    public void doAction() {
-        player.setTile(tile);
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+
+        try {
+            json.put(Action.TYPE_KEY, TYPE);
+            json.put(Action.PLAYER_KEY, _player);
+            json.put(TILE_KEY, _tile);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return json;
+    }
+
+    @Override
+    public void doAction(Game game) {
+        game.getPlayer(_player).setTile(_tile);
     }
 }

@@ -19,6 +19,7 @@ import java.util.List;
 
 import endee.fried.treasure.BluetoothLounge;
 import endee.fried.treasure.GameInvitationFragment;
+import endee.fried.treasure.InviteeLounge;
 
 /**
  * Created by natasha on 2014-08-05.
@@ -42,6 +43,8 @@ public class MenuView extends SurfaceView implements WifiP2pManager.PeerListList
             public void doAction() {
                 Intent intent = new Intent(getContext(), GameActivity.class);
                 intent.putExtra(GameInvitationFragment.GAME_SEED, -1);
+                intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, 0);
+                intent.putExtra(InviteeLounge.NUMBER_OF_PLAYERS, 1);
                 getContext().startActivity(intent);
             }
         }));

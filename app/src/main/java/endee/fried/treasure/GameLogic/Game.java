@@ -32,7 +32,9 @@ public class Game {
     private final HexMap hexMap;
 
     private final Random random;
-    private final Callback onChange;
+    private final Callback _redrawCallback;
+    private final SendActionCallback _sendActionCallback;
+
 
     private final List<Player> players;
     private final Map<Integer, Tile> tiles;
@@ -47,9 +49,12 @@ public class Game {
     private boolean madeMove;
 
 
-    public Game(int numPlayers, int localPlayer, long seed, Context context, Callback onChange) {
+    public Game(int numPlayers, int localPlayer, long seed, Context context, Callback redrawCallback, SendActionCallback sendActionCallback) {
         this.localPlayer = localPlayer;
-        this.onChange = onChange;
+        _redrawCallback = redrawCallback;
+
+        _sendActionCallback = sendActionCallback;
+
         state = State.IN_PROGRESS;
         madeMove = false;
         this.random = new Random(seed);
@@ -120,10 +125,15 @@ public class Game {
         return tiles.get(tile);
     }
 
+    public int getNumPlayers() { return players.size(); }
+
+    public Player getPlayer(int i) { return players.get(i); }
+
     public void update() {
         // Play all actions
+        // TODO: fix to always play them in player order
         for(Action a : currentActions) {
-            a.doAction();
+            a.doAction(this);
         }
 
         currentActions.clear();
@@ -191,39 +201,39 @@ public class Game {
         }
 
         // Tell view to redraw
-        onChange.doAction();
+        _redrawCallback.doAction();
     }
 
     public void movePlayer(int tile) {
         if(!madeMove && state == State.IN_PROGRESS) {
-            Action action = new MoveAction(players.get(localPlayer), tile);
+            Action action = new MoveAction(localPlayer, tile);
             currentActions.add(action);
 
-            // TODO: Send action to other phones about players action
+            _sendActionCallback.send(action);
 
             madeMove = true;
 
             if(waitingOnNumOpponent() == 0) {
                 update();
             } else {
-                onChange.doAction();
+                _redrawCallback.doAction();
             }
         }
     }
 
     public boolean useItem(int itemIndex) {
         if(!madeMove && state == State.IN_PROGRESS &&  players.get(localPlayer).canUseItem(itemIndex)) {
-            Action action = new UseItemAction(players.get(localPlayer), this, itemIndex);
+            Action action = new UseItemAction(localPlayer, itemIndex);
             currentActions.add(action);
 
-            // TODO: Send action to other phones about players action
+            _sendActionCallback.send(action);
 
             madeMove = true;
 
             if(waitingOnNumOpponent() == 0) {
                 update();
             } else {
-                onChange.doAction();
+                _redrawCallback.doAction();
             }
 
             return true;
@@ -236,9 +246,18 @@ public class Game {
         unplacedItemQueue.add(item);
     }
 
+    public void addOpponentAction(Action action) {
+        currentActions.add(action);
+
+        if(waitingOnNumOpponent() == 0) {
+            update();
+        } else {
+            _redrawCallback.doAction();
+        }
+    }
+
     public int waitingOnNumOpponent() {
-        //TODO
-        return 0;
+        return players.size() - currentActions.size();
     }
 
     public boolean hasMadeMove() {

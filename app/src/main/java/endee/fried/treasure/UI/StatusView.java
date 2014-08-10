@@ -14,35 +14,35 @@ import endee.fried.treasure.GameLogic.Game;
  * Created by natasha on 2014-08-05.
  */
 public class StatusView extends SurfaceView {
-    private Game game;
+    private Game _game;
 
-    private final int screenPixelWidth;
+    private final int _screenPixelWidth;
 
-    private final int viewHeight;
+    private final int _viewHeight;
 
     public StatusView(final Context context) {
         super(context);
 
-        screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
-        viewHeight = context.getResources().getDisplayMetrics().heightPixels / 20;
+        _screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
+        _viewHeight = context.getResources().getDisplayMetrics().heightPixels / 20;
     }
 
     public StatusView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
-        viewHeight = context.getResources().getDisplayMetrics().heightPixels / 20;
+        _screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
+        _viewHeight = context.getResources().getDisplayMetrics().heightPixels / 20;
     }
 
     public StatusView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
-        viewHeight = context.getResources().getDisplayMetrics().heightPixels / 20;
+        _screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
+        _viewHeight = context.getResources().getDisplayMetrics().heightPixels / 20;
     }
 
     public void init(Game _game) {
-        game = _game;
+        this._game = _game;
     }
 
 
@@ -52,29 +52,29 @@ public class StatusView extends SurfaceView {
 
         String status = "";
 
-        if(game.getGameState() == Game.State.WINNER) {
+        if(_game.getGameState() == Game.State.WINNER) {
             status = "You Win!";
-        } else if(game.getGameState() == Game.State.LOSER) {
+        } else if(_game.getGameState() == Game.State.LOSER) {
             status = "Loser!";
-        } else if(!game.hasMadeMove()) {
+        } else if(!_game.hasMadeMove()) {
             status = "Time to make a move!";
         } else {
-            status = "Waiting on " + game.waitingOnNumOpponent() + " opponents";
+            status = "Waiting on " + _game.waitingOnNumOpponent() + " opponent(s)";
         }
 
         Paint paint = new Paint();
 
         paint.setColor(Color.WHITE);
-        paint.setTextSize(viewHeight);
+        paint.setTextSize(_viewHeight / 2);
 
         Rect rect = new Rect();
         paint.getTextBounds(status, 0, status.length(), rect);
 
-        canvas.drawText(status, (screenPixelWidth - rect.width()) / 2, (viewHeight + rect.height()) / 2 , paint);
+        canvas.drawText(status, (_screenPixelWidth - rect.width()) / 2, (_viewHeight + rect.height()) / 2 , paint);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(screenPixelWidth, viewHeight);
+        setMeasuredDimension(_screenPixelWidth, _viewHeight);
     }
 }
