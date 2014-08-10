@@ -2,12 +2,19 @@ package endee.fried.treasure;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 import endee.fried.treasure.UI.MenuView;
 
@@ -59,24 +66,42 @@ public class MainMenuActivity extends Activity {
     @Override
     public synchronized void onResume() {
         super.onResume();
-        if(D) Log.e(TAG, "+ ON RESUME +");
+        if (D) Log.e(TAG, "+ ON RESUME +");
 
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-//        if (mBluetoothManager != null) {
-//            // Only if the state is STATE_NONE, do we know that we haven't started already
+        if (mBluetoothManager != null) {
+
+            mBluetoothManager.registerHandler(mHandler);
+            // Only if the state is STATE_NONE, do we know that we haven't started already
             if (mBluetoothManager.getState() == BluetoothManager.STATE_NONE) {
                 // Start the Bluetooth chat services
                 mBluetoothManager.start();
             }
+
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (D) Log.e(TAG, "+ ON RESUME +");
+
+        // Performing this check in onResume() covers the case in which BT was
+        // not enabled during onStart(), so we were paused to enable it...
+        // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
+        if (mBluetoothManager != null) {
+            mBluetoothManager.removeHandler(mHandler);
+        }
+    }
 
     private void setupBluetoothManager() {
         Log.d(TAG, "setupBluetoothManager()");
 
         // Initialize the BluetoothChatService to perform bluetooth connections
-        mBluetoothManager = new BluetoothManager(this, mHandler);
+        mBluetoothManager = BluetoothManager.getInstance();
+
     }
 
     // The Handler that gets information back from the BluetoothChatService
@@ -106,24 +131,42 @@ public class MainMenuActivity extends Activity {
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    if (readMessage.startsWith(BluetoothManager.GAME_INVITATION)) {
+                    try {
+                        JSONObject json = new JSONObject(readMessage);
+                        if (json.has(BluetoothManager.GAME_INVITATION)) {
 
-                        long seed = Long.parseLong(readMessage.substring(
-                                BluetoothManager.GAME_INVITATION.length(), readMessage.length()));
+                            if (D) Log.d(TAG, "Received a game invitation");
 
-                        GameInvitationFragment invitation = new GameInvitationFragment();
-                        Bundle bundle = new Bundle();
-                        bundle.putLong(GameInvitationFragment.GAME_SEED, seed);
-                        invitation.setArguments(bundle);
-                        // Doing this check to hopefully prevent the exception I was getting:
-                        // java.lang.IllegalStateException: Can not perform this action after
-                        // onSaveInstanceState dialogfragment
-                        if (!MainMenuActivity.this.isFinishing())
-                        {
-                            invitation.show(MainMenuActivity.this.getFragmentManager(), TAG);
+                            long seed = json.getLong(InviteeLounge.GAME_SEED_PRE);
+                            int playerNumber = json.getInt(InviteeLounge.PLAYER_NUMBER_PRE);
+                            ArrayList<String> invitedList =  new ArrayList<String>();
+                            JSONArray jsonArray = json.getJSONArray(InviteeLounge.INITIAL_INVITED_LIST_PRE);
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                invitedList.add((String)jsonArray.get(i));
+                            }
+
+                            GameInvitationFragment invitation = new GameInvitationFragment();
+                            Bundle bundle = new Bundle();
+                            bundle.putLong(GameInvitationFragment.GAME_SEED, seed);
+                            bundle.putInt(InviteeLounge.PLAYER_NUMBER_PRE, playerNumber);
+                            bundle.putStringArrayList(InviteeLounge.INITIAL_INVITED_LIST_PRE, invitedList);
+                            invitation.setArguments(bundle);
+                            // Doing this check to hopefully prevent the exception I was getting:
+                            // java.lang.IllegalStateException: Can not perform this action after
+                            // onSaveInstanceState dialogfragment
+
+                            if (!MainMenuActivity.this.isFinishing())
+                            {
+                                invitation.show(MainMenuActivity.this.getFragmentManager(), TAG);
+                            }
+
                         }
-
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
+
+
+
                     break;
                 case BluetoothLounge.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -135,5 +178,34 @@ public class MainMenuActivity extends Activity {
             }
         }
     };
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(D) Log.d(TAG, "onActivityResult " + resultCode);
+        switch (requestCode) {
+            case BluetoothLounge.REQUEST_CONNECT_DEVICE:
+                // When DeviceListActivity returns with a device to connect
+                if (resultCode == Activity.RESULT_OK) {
+                    // Get the device MAC address
+                    String address = data.getExtras()
+                            .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+                    // Get the BLuetoothDevice object
+                    BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+                    // Attempt to connect to the device
+                    mBluetoothManager.connect(device);
+                }
+                break;
+            case BluetoothLounge.REQUEST_ENABLE_BT:
+                // When the request to enable Bluetooth returns
+                if (resultCode == Activity.RESULT_OK) {
+                    // Bluetooth is now enabled, so set up a chat session
+                    setupBluetoothManager();
+                } else {
+                    // User did not enable Bluetooth or an error occured
+                    Log.d(TAG, "BT not enabled");
+                    Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+        }
+    }
 
 }

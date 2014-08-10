@@ -8,6 +8,7 @@ import java.util.Random;
 
 import endee.fried.treasure.GameInvitationFragment;
 import endee.fried.treasure.GameLogic.Game;
+import endee.fried.treasure.InviteeLounge;
 import endee.fried.treasure.R;
 
 
@@ -20,11 +21,14 @@ public class GameActivity extends Activity {
 
         Bundle extras = getIntent().getExtras();
         long seed = extras.getLong(GameInvitationFragment.GAME_SEED);
+        int playerNumber = extras.getInt(InviteeLounge.PLAYER_NUMBER_PRE);
+        int numPlayers = extras.getInt(InviteeLounge.NUMBER_OF_PLAYERS);
+
         if (seed == -1) {
             seed = new Random().nextLong();
         }
 
-        Game game = new Game(1, 0, seed, this, new Callback() {
+        Game game = new Game(numPlayers, playerNumber, seed, this, new Callback() {
             @Override
             public void doAction() {
                 Log.d("", "Invalidating in game callback");

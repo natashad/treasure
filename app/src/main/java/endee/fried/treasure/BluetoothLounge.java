@@ -36,10 +36,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-import endee.fried.treasure.UI.GameActivity;
 
 /**
  * This is the main Activity that displays the current chat session.
@@ -62,7 +65,7 @@ public class BluetoothLounge extends Activity {
     public static final String TOAST = "toast";
 
     // Intent request codes
-    private static final int REQUEST_CONNECT_DEVICE = 1;
+    protected static final int REQUEST_CONNECT_DEVICE = 1;
     protected static final int REQUEST_ENABLE_BT = 2;
 
     // Layout Views
@@ -83,7 +86,7 @@ public class BluetoothLounge extends Activity {
     private BluetoothManager mBluetoothManager = null;
 
     // Connected devices in the form of Address:Name pairs.
-    private HashMap<String, String> mConnectedDevices = new HashMap<String, String>();
+    private HashMap<String, BluetoothConnection> mConnectedDevices = new HashMap<String, BluetoothConnection>();
 
     private ArrayList<String> mInvitedDevices = new ArrayList<String>();
 
@@ -121,12 +124,34 @@ public class BluetoothLounge extends Activity {
             public void onClick(View view) {
                 mSeed = new Random().nextLong();
 //                ((Context)BluetoothLounge.this).startActivity(new Intent(BluetoothLounge.this, GameActivity.class));
+
+                // What happens when you hit the invite button.
                 for (int i = 0; i < mInvitedDevices.size(); i++) {
                     Log.d(TAG, mInvitedDevices.get(i));
-                    sendMessage(BluetoothManager.GAME_INVITATION + mSeed);
+                    JSONObject json = new JSONObject();
+                    try {
+                        json.put(BluetoothManager.GAME_INVITATION, true);
+                        json.put(InviteeLounge.GAME_SEED_PRE, mSeed);
+                        JSONArray invitedPlayers = new JSONArray(mInvitedDevices);
+                        // Add your own address
+                        invitedPlayers.put(mBluetoothAdapter.getAddress());
+                        json.put(InviteeLounge.INITIAL_INVITED_LIST_PRE, invitedPlayers);
+                        // i+1 so that the host is always player 0.
+                        json.put(InviteeLounge.PLAYER_NUMBER_PRE, i+1);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    sendMessage(json.toString(), mInvitedDevices.get(i));
                 }
-                Intent intent = new Intent(BluetoothLounge.this, GameActivity.class);
+
+                Intent intent = new Intent(BluetoothLounge.this, InviteeLounge.class);
+                intent.putExtra(BluetoothManager.IS_HOST, true);
                 intent.putExtra(GameInvitationFragment.GAME_SEED, mSeed);
+                intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, 0);
+                ArrayList<String> allMembers = mInvitedDevices;
+                allMembers.add(mBluetoothAdapter.getAddress());
+                intent.putExtra(InviteeLounge.INITIAL_INVITED_LIST_PRE, allMembers);
+
                 BluetoothLounge.this.startActivity(intent);
             }
         });
@@ -157,6 +182,8 @@ public class BluetoothLounge extends Activity {
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
         if (mBluetoothManager != null) {
+
+            mBluetoothManager.registerHandler(mHandler);
             // Only if the state is STATE_NONE, do we know that we haven't started already
             if (mBluetoothManager.getState() == BluetoothManager.STATE_NONE) {
                 // Start the Bluetooth chat services
@@ -192,7 +219,7 @@ public class BluetoothLounge extends Activity {
         connectedDevicesList.setAdapter(mConnectedListAdapter);
 
         // Initialize the BluetoothChatService to perform bluetooth connections
-        mBluetoothManager = new BluetoothManager(this, mHandler);
+        mBluetoothManager = BluetoothManager.getInstance();
 
         // Set an onClick Listener to Check and Uncheck items for invitation
         connectedDevicesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -224,6 +251,9 @@ public class BluetoothLounge extends Activity {
     public synchronized void onPause() {
         super.onPause();
         if(D) Log.e(TAG, "- ON PAUSE -");
+        if (mBluetoothManager != null) {
+            mBluetoothManager.removeHandler(mHandler);
+        }
     }
 
     @Override
@@ -254,7 +284,7 @@ public class BluetoothLounge extends Activity {
      * Sends a message.
      * @param message  A string of text to send.
      */
-    private void sendMessage(String message) {
+    private void sendMessage(String message, String deviceAddress) {
         // Check that we're actually connected before trying anything
         if (mBluetoothManager.getState() != BluetoothManager.STATE_CONNECTED) {
             Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
@@ -265,7 +295,7 @@ public class BluetoothLounge extends Activity {
         if (message.length() > 0) {
             // Get the message bytes and tell the BluetoothChatService to write
             byte[] send = message.getBytes();
-            mBluetoothManager.write(send);
+            mBluetoothManager.write(send, deviceAddress);
         }
     }
 
@@ -287,6 +317,7 @@ public class BluetoothLounge extends Activity {
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
+            String address;
             switch (msg.what) {
                 case MESSAGE_STATE_CHANGE:
                     if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
@@ -294,8 +325,8 @@ public class BluetoothLounge extends Activity {
                         case BluetoothManager.STATE_CONNECTED:
                             mTitle.setText(R.string.title_connected_to);
                             mTitle.append(mConnectedDeviceName);
-                            String address = msg.getData().getString(DEVICE_ADDRESS);
-                            mConnectedListAdapter.add(new BluetoothConnection(mConnectedDeviceName, address));
+                            address = msg.getData().getString(DEVICE_ADDRESS);
+                            mConnectedListAdapter.add(mConnectedDevices.get(address));
 //                            mConversationArrayAdapter.clear();
                             break;
                         case BluetoothManager.STATE_CONNECTING:
@@ -303,6 +334,9 @@ public class BluetoothLounge extends Activity {
                             break;
                         case BluetoothManager.STATE_LISTEN:
                         case BluetoothManager.STATE_NONE:
+                            address = msg.getData().getString(DEVICE_ADDRESS);
+                            mConnectedListAdapter.remove(mConnectedDevices.get(address));
+                            mConnectedDevices.remove(address);
                             mTitle.setText(R.string.title_not_connected);
                             break;
                     }
@@ -323,8 +357,8 @@ public class BluetoothLounge extends Activity {
                     // save the connected device's name
                     mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
                     String deviceName = msg.getData().getString(DEVICE_NAME);
-                    String address = msg.getData().getString(DEVICE_ADDRESS);
-                    mConnectedDevices.put(address, deviceName);
+                    address = msg.getData().getString(DEVICE_ADDRESS);
+                    mConnectedDevices.put(address, new BluetoothConnection(deviceName, address));
                     Toast.makeText(getApplicationContext(), "Connected to "
                             + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
                     break;
