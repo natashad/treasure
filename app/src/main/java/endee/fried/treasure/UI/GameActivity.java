@@ -42,7 +42,7 @@ public class GameActivity extends Activity {
             seed = new Random().nextLong();
         }
 
-        Log.d(TAG, "Random seed: " + seed);
+        Log.i(TAG, "Random seed: " + seed);
 
         _game = new Game(numPlayers, playerNumber, seed, this, new Callback() {
             @Override
