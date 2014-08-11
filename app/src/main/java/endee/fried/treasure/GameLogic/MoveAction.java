@@ -17,6 +17,8 @@ public class MoveAction extends Action {
         _tile = tile;
     }
 
+    public int getTile() { return _tile;}
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();

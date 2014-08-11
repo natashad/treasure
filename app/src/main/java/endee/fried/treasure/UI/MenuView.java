@@ -10,6 +10,7 @@ import android.view.SurfaceView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import endee.fried.treasure.BluetoothLounge;
 import endee.fried.treasure.GameInvitationFragment;
@@ -32,9 +33,9 @@ public class MenuView extends SurfaceView {
 
         _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.1f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Start Game", new Callback() {
             @Override
-            public void doAction() {
+            public void doAction(Object obj) {
                 Intent intent = new Intent(getContext(), GameActivity.class);
-                intent.putExtra(GameInvitationFragment.GAME_SEED, -1l);
+                intent.putExtra(GameInvitationFragment.GAME_SEED, new Random().nextLong());
                 intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, 0);
                 intent.putExtra(InviteeLounge.NUMBER_OF_PLAYERS, 1);
                 getContext().startActivity(intent);
@@ -43,7 +44,7 @@ public class MenuView extends SurfaceView {
 
         _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.25f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Host Game", new Callback() {
             @Override
-            public void doAction() {
+            public void doAction(Object obj) {
                 getContext().startActivity(new Intent(getContext(), BluetoothLounge.class));
             }
         }));

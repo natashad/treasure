@@ -69,7 +69,7 @@ public abstract class Button {
 
             case MotionEvent.ACTION_UP:
                 if (_clicked && isInBounds(touchX, touchY)) {
-                    _onClick.doAction();
+                    _onClick.doAction(null);
                 }
 
                 _clicked = false;
