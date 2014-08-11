@@ -74,11 +74,8 @@ public class MainMenuActivity extends Activity {
         if (mBluetoothManager != null) {
 
             mBluetoothManager.registerHandler(mHandler);
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mBluetoothManager.getState() == BluetoothManager.STATE_NONE) {
-                // Start the Bluetooth chat services
-                mBluetoothManager.start();
-            }
+            // Start the Bluetooth chat services
+            mBluetoothManager.start();
 
         }
     }
@@ -92,7 +89,7 @@ public class MainMenuActivity extends Activity {
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
         if (mBluetoothManager != null) {
-            mBluetoothManager.removeHandler(mHandler);
+            mBluetoothManager.unregisterHandler(mHandler);
         }
     }
 
@@ -110,18 +107,8 @@ public class MainMenuActivity extends Activity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case BluetoothLounge.MESSAGE_STATE_CHANGE:
-                    if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
-                    switch (msg.arg1) {
-                        case BluetoothManager.STATE_CONNECTED:
-
-                            break;
-                        case BluetoothManager.STATE_CONNECTING:
-
-                            break;
-                        case BluetoothManager.STATE_LISTEN:
-                        case BluetoothManager.STATE_NONE:
-                            break;
-                    }
+                    if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE");
+                    // TODO: check connection problems
                     break;
                 case BluetoothLounge.MESSAGE_WRITE:
                     byte[] writeBuf = (byte[]) msg.obj;
@@ -164,16 +151,6 @@ public class MainMenuActivity extends Activity {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-
-
-
-                    break;
-                case BluetoothLounge.MESSAGE_DEVICE_NAME:
-                    // save the connected device's name
-                    break;
-                case BluetoothLounge.MESSAGE_TOAST:
-                    Toast.makeText(getApplicationContext(), msg.getData().getString(BluetoothLounge.TOAST),
-                            Toast.LENGTH_SHORT).show();
                     break;
             }
         }

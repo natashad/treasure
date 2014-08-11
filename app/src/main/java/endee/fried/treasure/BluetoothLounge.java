@@ -30,7 +30,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckedTextView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -56,10 +55,9 @@ public class BluetoothLounge extends Activity {
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
     public static final int MESSAGE_WRITE = 3;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
 
     // Key names received from the BluetoothChatService Handler
+    public static final String CONNECTION_STATE = "connection state";
     public static final String DEVICE_NAME = "device_name";
     public static final String DEVICE_ADDRESS = "device_address";
     public static final String TOAST = "toast";
@@ -119,7 +117,7 @@ public class BluetoothLounge extends Activity {
             return;
         }
 
-        ((Button) findViewById(R.id.inviteButton)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.inviteButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mSeed = new Random().nextLong();
@@ -252,7 +250,7 @@ public class BluetoothLounge extends Activity {
         super.onPause();
         if(D) Log.e(TAG, "- ON PAUSE -");
         if (mBluetoothManager != null) {
-            mBluetoothManager.removeHandler(mHandler);
+            mBluetoothManager.unregisterHandler(mHandler);
         }
     }
 
@@ -286,7 +284,7 @@ public class BluetoothLounge extends Activity {
      */
     private void sendMessage(String message, String deviceAddress) {
         // Check that we're actually connected before trying anything
-        if (mBluetoothManager.getState() != BluetoothManager.STATE_CONNECTED) {
+        if (!mBluetoothManager.connectedToDevice(deviceAddress)) {
             Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -317,54 +315,33 @@ public class BluetoothLounge extends Activity {
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            String address;
+            String address = msg.getData().getString(DEVICE_ADDRESS);
+            String name = msg.getData().getString(DEVICE_NAME);
+
             switch (msg.what) {
                 case MESSAGE_STATE_CHANGE:
-                    if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
-                    switch (msg.arg1) {
-                        case BluetoothManager.STATE_CONNECTED:
-                            mTitle.setText(R.string.title_connected_to);
-                            mTitle.append(mConnectedDeviceName);
-                            address = msg.getData().getString(DEVICE_ADDRESS);
+                    if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE");
+
+                    BluetoothManager.ConnectionState state = (BluetoothManager.ConnectionState)msg.getData().getSerializable(BluetoothLounge.CONNECTION_STATE);
+
+                    switch (state) {
+                        case Connected:
+                            mConnectedDevices.put(address, new BluetoothConnection(name, address));
                             mConnectedListAdapter.add(mConnectedDevices.get(address));
-//                            mConversationArrayAdapter.clear();
+                            Toast.makeText(getApplicationContext(), "Connected to "
+                                    + name, Toast.LENGTH_SHORT).show();
                             break;
-                        case BluetoothManager.STATE_CONNECTING:
-                            mTitle.setText(R.string.title_connecting);
+                        case Failed:
+                            Toast.makeText(getApplicationContext(), "Failed to connect to " + name,
+                                    Toast.LENGTH_SHORT).show();
                             break;
-                        case BluetoothManager.STATE_LISTEN:
-                        case BluetoothManager.STATE_NONE:
-                            address = msg.getData().getString(DEVICE_ADDRESS);
+                        case Dropped:
                             mConnectedListAdapter.remove(mConnectedDevices.get(address));
                             mConnectedDevices.remove(address);
-                            mTitle.setText(R.string.title_not_connected);
+                            Toast.makeText(getApplicationContext(), "Connection to " + name + " was dropped",
+                                    Toast.LENGTH_SHORT).show();
                             break;
                     }
-                    break;
-//                case MESSAGE_WRITE:
-//                    byte[] writeBuf = (byte[]) msg.obj;
-//                    // construct a string from the buffer
-//                    String writeMessage = new String(writeBuf);
-//                    mConversationArrayAdapter.add("Me:  " + writeMessage);
-//                    break;
-//                case MESSAGE_READ:
-//                    byte[] readBuf = (byte[]) msg.obj;
-//                    // construct a string from the valid bytes in the buffer
-//                    String readMessage = new String(readBuf, 0, msg.arg1);
-//                    mConversationArrayAdapter.add(mConnectedDeviceName+":  " + readMessage);
-//                    break;
-                case MESSAGE_DEVICE_NAME:
-                    // save the connected device's name
-                    mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
-                    String deviceName = msg.getData().getString(DEVICE_NAME);
-                    address = msg.getData().getString(DEVICE_ADDRESS);
-                    mConnectedDevices.put(address, new BluetoothConnection(deviceName, address));
-                    Toast.makeText(getApplicationContext(), "Connected to "
-                            + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
-                    break;
-                case MESSAGE_TOAST:
-                    Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
-                            Toast.LENGTH_SHORT).show();
                     break;
             }
         }

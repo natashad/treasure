@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -80,7 +79,7 @@ public class GameActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
-        _bluetoothManager.removeHandler(handler);
+        _bluetoothManager.unregisterHandler(handler);
     }
 
     /**
@@ -88,12 +87,6 @@ public class GameActivity extends Activity {
      * @param json  A JSONObject to send.
      */
     private void sendMessage(JSONObject json, String except) {
-        // Check that we're actually connected before trying anything
-        if (_bluetoothManager.getState() != BluetoothManager.STATE_CONNECTED) {
-            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         String message = json.toString();
 
         // Check that there's actually something to send
@@ -112,7 +105,8 @@ public class GameActivity extends Activity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case BluetoothLounge.MESSAGE_STATE_CHANGE:
-                    Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
+                    Log.i(TAG, "MESSAGE_STATE_CHANGE");
+                    // TODO respond to connection problems
                     break;
                 case BluetoothLounge.MESSAGE_WRITE:
                     Log.i(TAG, "MESSAGE_WRITE: " + msg.arg1);
@@ -128,14 +122,6 @@ public class GameActivity extends Activity {
                         e.printStackTrace();
                         throw new RuntimeException(e);
                     }
-                    break;
-                case BluetoothLounge.MESSAGE_DEVICE_NAME:
-                    Log.i(TAG, "MESSAGE_DEVICE_NAME: " + msg.arg1);
-                    break;
-                case BluetoothLounge.MESSAGE_TOAST:
-                    Log.i(TAG, "MESSAGE_TOAST: " + msg.arg1);
-                    Toast.makeText(getApplicationContext(), msg.getData().getString(BluetoothLounge.TOAST),
-                            Toast.LENGTH_SHORT).show();
                     break;
             }
         }
