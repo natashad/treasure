@@ -33,7 +33,7 @@ public class MenuView extends SurfaceView {
 
         _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.1f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Start Game", new Callback() {
             @Override
-            public void doAction() {
+            public void doAction(Object obj) {
                 Intent intent = new Intent(getContext(), GameActivity.class);
                 intent.putExtra(GameInvitationFragment.GAME_SEED, new Random().nextLong());
                 intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, 0);
@@ -44,7 +44,7 @@ public class MenuView extends SurfaceView {
 
         _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.25f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Host Game", new Callback() {
             @Override
-            public void doAction() {
+            public void doAction(Object obj) {
                 getContext().startActivity(new Intent(getContext(), BluetoothLounge.class));
             }
         }));

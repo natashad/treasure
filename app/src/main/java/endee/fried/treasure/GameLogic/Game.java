@@ -32,8 +32,9 @@ public class Game {
     private final HexMap hexMap;
 
     private final Random random;
-    private final Callback _redrawCallback;
-    private final SendActionCallback _sendActionCallback;
+    private final Callback<Object> _redraw;
+    private final Callback<Action> _sendAction;
+    private final Callback<Integer> _centerOnTile;
 
 
     private final List<Player> players;
@@ -49,11 +50,12 @@ public class Game {
     private boolean madeMove;
 
 
-    public Game(int numPlayers, int localPlayer, long seed, Context context, Callback redrawCallback, SendActionCallback sendActionCallback) {
+    public Game(int numPlayers, int localPlayer, long seed, Context context, Callback<Object> redraw, Callback<Action> sendAction, Callback<Integer> centerOnTile) {
         this.localPlayer = localPlayer;
-        _redrawCallback = redrawCallback;
 
-        _sendActionCallback = sendActionCallback;
+        _redraw = redraw;
+        _centerOnTile = centerOnTile;
+        _sendAction = sendAction;
 
         state = State.IN_PROGRESS;
         madeMove = false;
@@ -134,6 +136,11 @@ public class Game {
         // TODO: fix to always play them in player order
         for(Action a : currentActions) {
             a.doAction(this);
+
+            // Centre map on new tile after they move
+            if(a._player == localPlayer && a instanceof MoveAction) {
+                _centerOnTile.doAction(((MoveAction) a).getTile());
+            }
         }
 
         currentActions.clear();
@@ -201,7 +208,7 @@ public class Game {
         }
 
         // Tell view to redraw
-        _redrawCallback.doAction();
+        _redraw.doAction(null);
     }
 
     public void movePlayer(int tile) {
@@ -209,14 +216,14 @@ public class Game {
             Action action = new MoveAction(localPlayer, tile);
             currentActions.add(action);
 
-            _sendActionCallback.send(action);
+            _sendAction.doAction(action);
 
             madeMove = true;
 
             if(waitingOnNumOpponent() == 0) {
                 update();
             } else {
-                _redrawCallback.doAction();
+                _redraw.doAction(null);
             }
         }
     }
@@ -226,14 +233,14 @@ public class Game {
             Action action = new UseItemAction(localPlayer, itemIndex);
             currentActions.add(action);
 
-            _sendActionCallback.send(action);
+            _sendAction.doAction(action);
 
             madeMove = true;
 
             if(waitingOnNumOpponent() == 0) {
                 update();
             } else {
-                _redrawCallback.doAction();
+                _redraw.doAction(null);
             }
 
             return true;
@@ -252,7 +259,7 @@ public class Game {
         if(waitingOnNumOpponent() == 0) {
             update();
         } else {
-            _redrawCallback.doAction();
+            _redraw.doAction(null);
         }
     }
 

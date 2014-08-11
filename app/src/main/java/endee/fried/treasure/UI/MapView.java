@@ -76,7 +76,7 @@ public class MapView extends SurfaceView {
             _buttons.put(allTiles[i], new TileButton(loc[0] * DIAMETER,
                     loc[1] * DIAMETER * 0.87f + DIAMETER * 0.11f, DIAMETER / 2, new Callback() {
                 @Override
-                public void doAction() {
+                public void doAction(Object obj) {
                     _game.movePlayer(allTiles[index]);
                 }
             }, _game, allTiles[i], _hexBmp
@@ -86,6 +86,21 @@ public class MapView extends SurfaceView {
         calculateScaleAndAspectRatio();
     }
 
+    public void centerOnTile(int tile) {
+        float[] loc = _game.getHexMap().getLocation(tile);
+
+        float x = loc[0] * DIAMETER;
+        float y = loc[1] * DIAMETER * 0.87f + DIAMETER * 0.11f;
+
+        float tileMapWidth = _screenPixelWidth / _scale;
+        float tileMapHeight = _mapScreenHeight / _scale;
+
+        _offsetX = x - tileMapWidth / 2;
+        _offsetY = y - tileMapHeight / 2;
+
+        boundPanAndZoom();
+        invalidate();
+    }
 
     @Override
     public void onDraw(Canvas canvas) {

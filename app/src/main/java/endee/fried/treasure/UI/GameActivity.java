@@ -15,7 +15,6 @@ import endee.fried.treasure.BluetoothManager;
 import endee.fried.treasure.GameInvitationFragment;
 import endee.fried.treasure.GameLogic.Action;
 import endee.fried.treasure.GameLogic.Game;
-import endee.fried.treasure.GameLogic.SendActionCallback;
 import endee.fried.treasure.InviteeLounge;
 import endee.fried.treasure.R;
 
@@ -25,6 +24,8 @@ public class GameActivity extends Activity {
 
     private Game _game;
     private BluetoothManager _bluetoothManager;
+
+    private boolean centerOnMove = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,20 +39,27 @@ public class GameActivity extends Activity {
 
         Log.i(TAG, "Random seed: " + seed);
 
-        _game = new Game(numPlayers, playerNumber, seed, this, new Callback() {
+        _game = new Game(numPlayers, playerNumber, seed, this, new Callback<Object>() {
             @Override
-            public void doAction() {
+            public void doAction(Object object) {
                 Log.d("", "Invalidating in game callback");
                 findViewById(R.id.map_view).invalidate();
                 findViewById(R.id.action_point_view).invalidate();
                 findViewById(R.id.status_view).invalidate();
             }
-        },new SendActionCallback() {
+        },new Callback<Action>() {
             @Override
-            public void send(Action action) {
+            public void doAction(Action action) {
                 if(_game.getNumPlayers() > 1) {
                     Log.e(TAG, "Sending a message");
                     sendMessage(action.toJSON(), "");
+                }
+            }
+        }, new Callback<Integer>() {
+            @Override
+            public void doAction(Integer tile) {
+                if(centerOnMove) {
+                    ((MapView) findViewById(R.id.map_view)).centerOnTile(tile);
                 }
             }
         });
