@@ -32,7 +32,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckedTextView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -66,18 +65,6 @@ public class BluetoothLounge extends Activity {
     protected static final int REQUEST_CONNECT_DEVICE = 1;
     protected static final int REQUEST_ENABLE_BT = 2;
 
-    // Layout Views
-    private TextView mTitle;
-//    private ListView mConversationView;
-//    private EditText mOutEditText;
-//    private Button mSendButton;
-
-    // Name of the connected device
-    private String mConnectedDeviceName = null;
-    // Array adapter for the conversation thread
-//    private ArrayAdapter<String> mConversationArrayAdapter;
-    // String buffer for outgoing messages
-//    private StringBuffer mOutStringBuffer;
     // Local Bluetooth adapter
     private BluetoothAdapter mBluetoothAdapter = null;
     // Member object for the chat services
@@ -102,11 +89,6 @@ public class BluetoothLounge extends Activity {
         // Set up the window layout
         setContentView(R.layout.main);
 
-        // Set up the custom title
-        mTitle = (TextView) findViewById(R.id.title_left_text);
-        mTitle.setText("Me");
-        mTitle = (TextView) findViewById(R.id.title_right_text);
-
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -122,6 +104,29 @@ public class BluetoothLounge extends Activity {
             public void onClick(View view) {
                 mSeed = new Random().nextLong();
 //                ((Context)BluetoothLounge.this).startActivity(new Intent(BluetoothLounge.this, GameActivity.class));
+
+                boolean failed = false;
+
+                for (int i = 0; i < mInvitedDevices.size(); i++) {
+                    if(!mBluetoothManager.connectedToDevice(mInvitedDevices.get(i))) {
+
+
+                        Toast.makeText(BluetoothLounge.this, "Error no longer connected to " + mConnectedDevices.get(mInvitedDevices.get(i)).getName(), Toast.LENGTH_SHORT).show();
+
+                        mConnectedDevices.remove(mInvitedDevices.get(i));
+                        mInvitedDevices.remove(i);
+                        i--;
+
+                        failed = true;
+                    }
+                }
+
+                if(failed) {
+                    mConnectedListAdapter.clear();
+                    mConnectedListAdapter.addAll(mConnectedDevices.values());
+                    return;
+                }
+
 
                 // What happens when you hit the invite button.
                 for (int i = 0; i < mInvitedDevices.size(); i++) {
@@ -180,13 +185,7 @@ public class BluetoothLounge extends Activity {
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
         if (mBluetoothManager != null) {
-
             mBluetoothManager.registerHandler(mHandler);
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mBluetoothManager.getState() == BluetoothManager.STATE_NONE) {
-                // Start the Bluetooth chat services
-                mBluetoothManager.start();
-            }
         }
     }
 
@@ -255,17 +254,10 @@ public class BluetoothLounge extends Activity {
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        if(D) Log.e(TAG, "-- ON STOP --");
-    }
+    public void onBackPressed() {
+        super.onBackPressed();
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        // Stop the Bluetooth chat services
-//        if (mBluetoothManager != null) mBluetoothManager.stop();
-        if(D) Log.e(TAG, "--- ON DESTROY ---");
+        mBluetoothManager.dropAllConnections();
     }
 
     private void ensureDiscoverable() {
@@ -297,20 +289,6 @@ public class BluetoothLounge extends Activity {
         }
     }
 
-//    // The action listener for the EditText widget, to listen for the return key
-//    private TextView.OnEditorActionListener mWriteListener =
-//            new TextView.OnEditorActionListener() {
-//                public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
-//                    // If the action is a key-up event on the return key, send the message
-//                    if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
-//                        String message = view.getText().toString();
-//                        sendMessage(message);
-//                    }
-//                    if(D) Log.i(TAG, "END onEditorAction");
-//                    return true;
-//                }
-//            };
-
     // The Handler that gets information back from the BluetoothChatService
     private final Handler mHandler = new Handler() {
         @Override
@@ -326,6 +304,7 @@ public class BluetoothLounge extends Activity {
 
                     switch (state) {
                         case Connected:
+                            if(mConnectedDevices.containsKey(address)) break;
                             mConnectedDevices.put(address, new BluetoothConnection(name, address));
                             mConnectedListAdapter.add(mConnectedDevices.get(address));
                             Toast.makeText(getApplicationContext(), "Connected to "
@@ -338,6 +317,7 @@ public class BluetoothLounge extends Activity {
                         case Dropped:
                             mConnectedListAdapter.remove(mConnectedDevices.get(address));
                             mConnectedDevices.remove(address);
+                            mInvitedDevices.remove(address);
                             Toast.makeText(getApplicationContext(), "Connection to " + name + " was dropped",
                                     Toast.LENGTH_SHORT).show();
                             break;

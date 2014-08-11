@@ -59,7 +59,9 @@ public class MainMenuActivity extends Activity {
             // Otherwise, setup the chat session
         }
         else {
-            if (mBluetoothManager == null) setupBluetoothManager();
+            if (mBluetoothManager == null) mBluetoothManager = BluetoothManager.getInstance();
+            mBluetoothManager.startListening();
+            //TODO stop listening when?
         }
     }
 
@@ -72,11 +74,7 @@ public class MainMenuActivity extends Activity {
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
         if (mBluetoothManager != null) {
-
             mBluetoothManager.registerHandler(mHandler);
-            // Start the Bluetooth chat services
-            mBluetoothManager.start();
-
         }
     }
 
@@ -91,14 +89,6 @@ public class MainMenuActivity extends Activity {
         if (mBluetoothManager != null) {
             mBluetoothManager.unregisterHandler(mHandler);
         }
-    }
-
-    private void setupBluetoothManager() {
-        Log.d(TAG, "setupBluetoothManager()");
-
-        // Initialize the BluetoothChatService to perform bluetooth connections
-        mBluetoothManager = BluetoothManager.getInstance();
-
     }
 
     // The Handler that gets information back from the BluetoothChatService
@@ -175,7 +165,8 @@ public class MainMenuActivity extends Activity {
                 // When the request to enable Bluetooth returns
                 if (resultCode == Activity.RESULT_OK) {
                     // Bluetooth is now enabled, so set up a chat session
-                    setupBluetoothManager();
+                    mBluetoothManager = BluetoothManager.getInstance();
+                    mBluetoothManager.startListening();
                 } else {
                     // User did not enable Bluetooth or an error occured
                     Log.d(TAG, "BT not enabled");

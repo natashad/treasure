@@ -131,7 +131,8 @@ public class InviteeLounge extends Activity {
             // Otherwise, setup the chat session
         }
         else {
-            if (mBluetoothManager == null) setupBluetoothManager();
+            if (mBluetoothManager == null) mBluetoothManager = BluetoothManager.getInstance();;
+            mBluetoothManager.startListening();
         }
     }
 
@@ -161,14 +162,12 @@ public class InviteeLounge extends Activity {
         }
     }
 
-    private void setupBluetoothManager() {
-        Log.d(TAG, "setupBluetoothManager()");
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
 
-        // Initialize the BluetoothChatService to perform bluetooth connections
-        mBluetoothManager = BluetoothManager.getInstance();
-
+        mBluetoothManager.stopListening();
     }
-
 
     public static String convertStringArrayToBigString(String[] input, String prefix) {
         String ret = prefix;
@@ -229,7 +228,6 @@ public class InviteeLounge extends Activity {
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            String address;
             switch (msg.what) {
                 case BluetoothLounge.MESSAGE_STATE_CHANGE:
                     if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE");
@@ -240,10 +238,11 @@ public class InviteeLounge extends Activity {
 
                     break;
                 case BluetoothLounge.MESSAGE_READ:
+                    Log.i(TAG, "RECEIVING A MESSAGE" + new String((byte[])msg.obj));
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    address = msg.getData().getString(BluetoothLounge.DEVICE_ADDRESS);
+                    String address = msg.getData().getString(BluetoothLounge.DEVICE_ADDRESS);
 
                     try {
                         JSONObject json = new JSONObject(readMessage);
@@ -313,7 +312,7 @@ public class InviteeLounge extends Activity {
                 // When the request to enable Bluetooth returns
                 if (resultCode == Activity.RESULT_OK) {
                     // Bluetooth is now enabled, so set up a chat session
-                    setupBluetoothManager();
+                    mBluetoothManager = BluetoothManager.getInstance();
                 } else {
                     // User did not enable Bluetooth or an error occured
                     Log.d(TAG, "BT not enabled");

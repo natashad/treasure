@@ -38,6 +38,8 @@ public class BluetoothManager {
         Connected
     }
 
+
+
     // CONSTANTS
     private static final String TAG = "BluetoothManager";
     // Name for the SDP record when creating server socket
@@ -51,6 +53,9 @@ public class BluetoothManager {
     public static final int STATE_LISTEN = 0x1;     // now listening for incoming connections
     public static final int STATE_CONNECTING = 0x2; // now initiating an outgoing connection
 
+    // Singleton instance of Self.
+    private static BluetoothManager _self;
+
     // MEMBER FIELDS
 
     private final BluetoothAdapter _bluetoothAdapter;
@@ -58,10 +63,9 @@ public class BluetoothManager {
     private AcceptThread _acceptThread;
     private ConnectingThread _connectingThread;
     private HashMap<String, ConnectedThread> _connectedThreads = new HashMap<String, ConnectedThread>();
-    //TODO: Figure out how to not make this singular
+
     private int _state;
-    // Singleton instance of Self.
-    private static BluetoothManager _self;
+
 
     /**
      * Constructor. Prepares a new BluetoothManager session.
@@ -122,37 +126,41 @@ public class BluetoothManager {
     }
 
     /**
-     * Return the current connection state. */
-    public synchronized int getState() {
-        return _state;
-    }
-
-    /**
      * Start the bluetooth manager. Specifically start AcceptThread to begin a
      * session in listening (server) mode. Called by the Activity onResume() */
-    public synchronized void start() {
+    public synchronized void startListening() {
         Log.d(TAG, "start");
+
+        if(_acceptThread != null) {
+            _acceptThread.cancel();
+        }
+
+        _acceptThread = new AcceptThread();
+        _acceptThread.start();
+
+        _state = _state | STATE_LISTEN;
+    }
+
+    public synchronized void stopListening() {
 
         if(_acceptThread != null) {
             _acceptThread.cancel();
             _acceptThread = null;
         }
 
-        // Cancel any thread attempting to make a connection
+        _state = _state & ~STATE_LISTEN;
+    }
+
+    public synchronized void dropAllConnections() {
         if (_connectingThread != null) {
-            _connectingThread.cancel();
-            _connectingThread = null;}
+            _connectingThread.cancel(); _connectingThread = null;
+        }
 
         for (ConnectedThread ct : _connectedThreads.values()) {
             ct.cancel();
         }
+
         _connectedThreads.clear();
-
-        // Start the thread to listen on a BluetoothServerSocket
-        _acceptThread = new AcceptThread();
-        _acceptThread.start();
-
-        _state = STATE_LISTEN;
     }
 
     /**
@@ -160,10 +168,10 @@ public class BluetoothManager {
      * @param device  The BluetoothDevice to connect
      */
     public synchronized void connect(BluetoothDevice device) {
-        Log.d(TAG, "connect to: " + device);
+        Log.e(TAG, "connect to: " + device);
 
         // Cancel any thread attempting to make a connection
-        if (_state == STATE_CONNECTING) {
+        if ((_state & STATE_CONNECTING) > 0) {
             if (_connectingThread != null) {
                 _connectingThread.cancel();
                 _connectingThread = null;
@@ -179,7 +187,7 @@ public class BluetoothManager {
     /**
      * Stop all threads
      */
-    public synchronized void stop() {
+    public synchronized void stopEverything() {
         Log.d(TAG, "stop");
 
         if (_acceptThread != null) {
@@ -188,7 +196,8 @@ public class BluetoothManager {
         }
 
         if (_connectingThread != null) {
-            _connectingThread.cancel(); _connectingThread = null;}
+            _connectingThread.cancel(); _connectingThread = null;
+        }
 
         for (ConnectedThread ct : _connectedThreads.values()) {
             ct.cancel();
@@ -198,7 +207,6 @@ public class BluetoothManager {
 
         _state = STATE_NONE;
     }
-
 
     public boolean connectedToDevice(String deviceAddress) {
         return _connectedThreads.containsKey(deviceAddress);
@@ -228,6 +236,11 @@ public class BluetoothManager {
      * @see ConnectedThread#write(byte[])
      */
     public void write(byte[] out, String deviceAddress) {
+
+        if(out.length == 0) {
+            throw new RuntimeException("Error sending empty message");
+        }
+
         // Create temporary object
         ConnectedThread r;
         // Synchronize a copy of the ConnectedThread
@@ -266,9 +279,6 @@ public class BluetoothManager {
      */
     private synchronized void connectionFailed(BluetoothDevice device) {
         sendConnectionState(ConnectionState.Failed, device.getAddress(), device.getName());
-
-        //
-
         _state = _state & ~STATE_CONNECTING;
     }
 
@@ -277,7 +287,6 @@ public class BluetoothManager {
      */
     private synchronized void connectionLost(BluetoothDevice device) {
         sendConnectionState(ConnectionState.Dropped, device.getAddress(), device.getName());
-
         _connectedThreads.remove(device.getAddress());
     }
 
@@ -303,7 +312,7 @@ public class BluetoothManager {
         }
 
         public void run() {
-            Log.d(TAG, "BEGIN _acceptThread" + this);
+            Log.d(TAG, "BEGIN acceptThread" + this);
 
             setName("AcceptThread");
             BluetoothSocket socket = null;
@@ -384,6 +393,7 @@ public class BluetoothManager {
                 // successful connection or an exception
                 __socket.connect();
             } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
                 connectionFailed(__device);
                 // Close the socket
                 try {
@@ -391,10 +401,7 @@ public class BluetoothManager {
                 } catch (IOException e2) {
                     Log.e(TAG, "unable to close() socket during connection failure", e2);
                 }
-                // Start the service over to restart listening mode
-                synchronized (this) {
-                    BluetoothManager.this.start();
-                }
+
                 return;
             }
 
