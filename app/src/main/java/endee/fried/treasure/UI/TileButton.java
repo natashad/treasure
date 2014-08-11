@@ -1,8 +1,12 @@
 package endee.fried.treasure.UI;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
 
 import java.util.List;
 
@@ -17,10 +21,13 @@ public class TileButton extends CircleButton {
     private Game _game;
     private int _tileID;
 
-    public TileButton(float centerX, float centerY, float radius, Callback callback, Game game, int tileID) {
-        super(centerX, centerY, radius, callback);
-        this._game = game;
-        this._tileID = tileID;
+    private Bitmap _image;
+
+    public TileButton(float centerX, float centerY, float radius, Callback onClick, Game game, int tileID, Bitmap image) {
+        super(centerX, centerY, radius, onClick);
+        _game = game;
+        _tileID = tileID;
+        _image = image;
     }
 
     @Override
@@ -54,6 +61,29 @@ public class TileButton extends CircleButton {
         } else if(_game.getTreasureTile() == _tileID) {
             drawCircle(canvas, paint, getRadius() / 4, Color.MAGENTA);
         }
+    }
+
+    @Override
+    protected void drawButton(Canvas canvas, Paint paint, int color) {
+        paint.setColorFilter(new LightingColorFilter(color, 0));
+
+        float scale = getRadius() * 2 / _image.getWidth();
+
+        float width = getRadius() * 2;
+        float height = _image.getHeight() * scale;
+
+        Rect imageRect = new Rect(0, 0, _image.getWidth(), _image.getHeight());
+        RectF screenRect = new RectF(getX() - width/2, getY() - height/2, getX() + width/2, getY() + height/2);
+
+        canvas.drawBitmap(_image, imageRect, screenRect, paint);
+
+        paint.setColorFilter(null);
+
+        // Uncomment these too see the click area
+//        paint.setStyle(Paint.Style.STROKE);
+//        paint.setColor(Color.BLACK);
+//        paint.setStrokeWidth(Math.min(10f, getRadius() / 20f));
+//        canvas.drawCircle(getX(), getY(), getRadius(), paint);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package endee.fried.treasure.UI;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
@@ -12,6 +14,7 @@ import android.view.SurfaceView;
 import java.util.HashMap;
 
 import endee.fried.treasure.GameLogic.Game;
+import endee.fried.treasure.R;
 
 /**
  * Created by natasha on 2014-08-05.
@@ -23,71 +26,61 @@ public class MapView extends SurfaceView {
     private final static float MAP_WIDTH = Game.getHexSize();
     private final static float MIN_MAP_WIDTH = 3 * DIAMETER;
     private final static float TILE_WIDTH = MAP_WIDTH * DIAMETER + DIAMETER / 2f;
-    private final static float TILE_HEIGHT = MAP_WIDTH * DIAMETER * 0.878f;
+    private final static float TILE_HEIGHT = MAP_WIDTH * DIAMETER * 0.886f;
 
-    private Game game;
+    private Game _game;
 
-    private final HashMap<Integer, TileButton> buttons;
+    private final HashMap<Integer, TileButton> _buttons;
 
-    private final ScaleGestureDetector scaleDetector;
-    private final GestureDetector panDetector;
+    private final ScaleGestureDetector _scaleDetector;
+    private final GestureDetector _panDetector;
 
-    private float mapScreenHeight;
-    private float scale, minScale, maxScale;
-    private float offsetX, offsetY;
+    private final Bitmap _hexBmp;
 
-    private final int screenPixelWidth;
-    private final int screenPixelHeight;
+    private final int _screenPixelWidth;
+
+    private float _mapScreenHeight;
+    private float _scale, _minScale, _maxScale;
+    private float _offsetX, _offsetY;
 
 
-    public MapView(final Context context) {
-        super(context);
 
-        buttons = new HashMap<Integer,TileButton>();
-        scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
-        panDetector = new GestureDetector(context, new PanListener());
-
-        screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
-        screenPixelHeight = context.getResources().getDisplayMetrics().heightPixels;
+    public MapView(Context context) {
+        this(context, null);
     }
 
     public MapView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-
-        buttons = new HashMap<Integer,TileButton>();
-        scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
-        panDetector = new GestureDetector(context, new PanListener());
-
-        screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
-        screenPixelHeight = context.getResources().getDisplayMetrics().heightPixels;
+        this(context, attrs, 0);
     }
 
     public MapView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
-        buttons = new HashMap<Integer,TileButton>();
-        scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
-        panDetector = new GestureDetector(context, new PanListener());
+        _buttons = new HashMap<Integer,TileButton>();
+        _scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        _panDetector = new GestureDetector(context, new PanListener());
 
-        screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
-        screenPixelHeight = context.getResources().getDisplayMetrics().heightPixels;
+        _screenPixelWidth = context.getResources().getDisplayMetrics().widthPixels;
+
+        _hexBmp = BitmapFactory.decodeResource(getResources(), R.drawable.base_hex);
     }
 
-    public void init(Game _game) {
-        game = _game;
+    public void init(Game game) {
+        _game = game;
 
-        final int[] allTiles = game.getHexMap().getAllTiles();
+        final int[] allTiles = _game.getHexMap().getAllTiles();
 
         for (int i = 0; i < allTiles.length; i++) {
             final int index = i;
-            float[] loc = game.getHexMap().getLocation(allTiles[i]);
-            buttons.put(allTiles[i], new TileButton(loc[0] * DIAMETER,
-                    loc[1] * DIAMETER * 0.87f + DIAMETER * 0.065f, DIAMETER/2, new Callback() {
+            float[] loc = _game.getHexMap().getLocation(allTiles[i]);
+            _buttons.put(allTiles[i], new TileButton(loc[0] * DIAMETER,
+                    loc[1] * DIAMETER * 0.87f + DIAMETER * 0.11f, DIAMETER / 2, new Callback() {
                 @Override
                 public void doAction() {
-                    game.movePlayer(allTiles[index]);
+                    _game.movePlayer(allTiles[index]);
                 }
-            }, game, allTiles[i]));
+            }, _game, allTiles[i], _hexBmp
+            ));
         }
 
         calculateScaleAndAspectRatio();
@@ -100,11 +93,11 @@ public class MapView extends SurfaceView {
 
         canvas.save();
 
-        canvas.scale(scale, scale);
-        canvas.translate(-offsetX, -offsetY);
+        canvas.scale(_scale, _scale);
+        canvas.translate(-_offsetX, -_offsetY);
 
         Paint paint = new Paint();
-        for(Button b : buttons.values()) {
+        for(Button b : _buttons.values()) {
             b.draw(canvas, paint);
         }
 
@@ -113,61 +106,61 @@ public class MapView extends SurfaceView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(screenPixelWidth, (int)mapScreenHeight);
+        setMeasuredDimension(_screenPixelWidth, (int) _mapScreenHeight);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean changed = false;
 
-        scaleDetector.onTouchEvent(event);
-        panDetector.onTouchEvent(event);
+        _scaleDetector.onTouchEvent(event);
+        _panDetector.onTouchEvent(event);
 
         int motionEvent = event.getAction();
 
-        if(event.getY() <= mapScreenHeight) {
-            for (Button b : buttons.values()) {
-                changed = b.update(event.getX() / scale + offsetX, event.getY() / scale + offsetY, motionEvent) || changed;
+        if(event.getY() <= _mapScreenHeight) {
+            for (Button b : _buttons.values()) {
+                changed = b.update(event.getX() / _scale + _offsetX, event.getY() / _scale + _offsetY, motionEvent) || changed;
             }
         }
 
-        if(changed) this.invalidate();
+        if(changed) invalidate();
         return true;
     }
 
     private void calculateScaleAndAspectRatio() {
-        minScale = screenPixelWidth / TILE_WIDTH;
-        maxScale = screenPixelWidth / MIN_MAP_WIDTH;
+        _minScale = _screenPixelWidth / TILE_WIDTH;
+        _maxScale = _screenPixelWidth / MIN_MAP_WIDTH;
 
-        scale = screenPixelWidth / START_MAP_WIDTH;
+        _scale = _screenPixelWidth / START_MAP_WIDTH;
 
-        mapScreenHeight = screenPixelWidth * TILE_HEIGHT/TILE_WIDTH;
+        _mapScreenHeight = _screenPixelWidth * TILE_HEIGHT/TILE_WIDTH;
 
         // Position view to the centre of the map
-        offsetX = (TILE_WIDTH / 2f - START_MAP_WIDTH / 2f) + DIAMETER / 2f;
-        offsetY = TILE_HEIGHT / 2f - (TILE_HEIGHT/TILE_WIDTH * START_MAP_WIDTH) / 2f;
+        _offsetX = (TILE_WIDTH / 2f - START_MAP_WIDTH / 2f) + DIAMETER / 2f;
+        _offsetY = TILE_HEIGHT / 2f - (TILE_HEIGHT/TILE_WIDTH * START_MAP_WIDTH) / 2f;
     }
 
     private void boundPanAndZoom() {
-        float currentTileWidth = getWidth() / scale;
-        float currentTileHeight = mapScreenHeight / scale;
+        float currentTileWidth = getWidth() / _scale;
+        float currentTileHeight = _mapScreenHeight / _scale;
 
-        offsetX = Math.max(0, Math.min(offsetX, TILE_WIDTH - currentTileWidth));
-        offsetY = Math.max(0, Math.min(offsetY, TILE_HEIGHT - currentTileHeight));
+        _offsetX = Math.max(0, Math.min(_offsetX, TILE_WIDTH - currentTileWidth));
+        _offsetY = Math.max(0, Math.min(_offsetY, TILE_HEIGHT - currentTileHeight));
 
-        scale = Math.max(minScale, Math.min(scale, maxScale));
+        _scale = Math.max(_minScale, Math.min(_scale, _maxScale));
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            scale *= detector.getScaleFactor();
+            _scale *= detector.getScaleFactor();
 
             float newScreenFocusX = detector.getFocusX() * detector.getScaleFactor();
             float newScreenFocusY = detector.getFocusY() * detector.getScaleFactor();
 
-            offsetX += (newScreenFocusX - detector.getFocusX()) / scale;
-            offsetY += (newScreenFocusY - detector.getFocusY()) / scale;
+            _offsetX += (newScreenFocusX - detector.getFocusX()) / _scale;
+            _offsetY += (newScreenFocusY - detector.getFocusY()) / _scale;
 
             boundPanAndZoom();
 
@@ -180,8 +173,8 @@ public class MapView extends SurfaceView {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2,
                                 float distanceX, float distanceY) {
-            offsetX += distanceX / scale;
-            offsetY += distanceY / scale;
+            _offsetX += distanceX / _scale;
+            _offsetY += distanceY / _scale;
 
             boundPanAndZoom();
 
