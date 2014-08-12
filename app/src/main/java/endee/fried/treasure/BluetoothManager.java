@@ -41,7 +41,7 @@ public class BluetoothManager {
 
 
     // CONSTANTS
-    private static final String TAG = "BluetoothManager";
+    private static final String TAG = BluetoothManager.class.getName();
     // Name for the SDP record when creating server socket
     private static final String NAME = "BluetoothConnection";
     public static final String GAME_INVITATION = "__invitation_to_treasure__";
@@ -168,7 +168,7 @@ public class BluetoothManager {
      * @param device  The BluetoothDevice to connect
      */
     public synchronized void connect(BluetoothDevice device) {
-        Log.e(TAG, "connect to: " + device);
+        Log.d(TAG, "connect to: " + device);
 
         // Cancel any thread attempting to make a connection
         if ((_state & STATE_CONNECTING) > 0) {
