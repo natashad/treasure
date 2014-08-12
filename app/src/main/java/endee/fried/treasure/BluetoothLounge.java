@@ -32,7 +32,6 @@ import java.util.Random;
 public class BluetoothLounge extends Activity {
 
     // CONSTANTS
-
     private static final String TAG = BluetoothLounge.class.getName();
     // Message types sent from the BluetoothManager
     public static final int MESSAGE_STATE_CHANGE = 1;
@@ -47,7 +46,6 @@ public class BluetoothLounge extends Activity {
     protected static final int REQUEST_ENABLE_BT = 2;
 
     // MEMBER VARIABLES
-
     // Local Bluetooth adapter
     private BluetoothAdapter _bluetoothAdapter = null;
     // Member object for the chat services

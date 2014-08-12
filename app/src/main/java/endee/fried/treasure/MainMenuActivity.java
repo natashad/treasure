@@ -16,17 +16,17 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import endee.fried.treasure.UI.Callback;
 import endee.fried.treasure.UI.MenuView;
 
-public class MainMenuActivity extends Activity {
+public class MainMenuActivity extends Activity implements Callback {
 
     //Debug
-    private static final String TAG = "MainMenuActivity";
-    private static final boolean D = true;
+    private static final String TAG = MainMenuActivity.class.getName();
 
     // Local Bluetooth adapter
-    private BluetoothAdapter mBluetoothAdapter = null;
-    private BluetoothManager mBluetoothManager = null;
+    private BluetoothAdapter _bluetoothAdapter = null;
+    private BluetoothManager _bluetoothManager = null;
 
 
     @Override
@@ -36,10 +36,10 @@ public class MainMenuActivity extends Activity {
         setContentView(view);
 
         // Get local Bluetooth adapter
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        _bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // If the adapter is null, then Bluetooth is not supported
-        if (mBluetoothAdapter == null) {
+        if (_bluetoothAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -49,18 +49,16 @@ public class MainMenuActivity extends Activity {
     @Override
     public void onStart() {
         super.onStart();
-        if(D) Log.e(TAG, "++ ON START ++");
+        Log.d(TAG, "++ ON START ++");
 
         // If BT is not on, request that it be enabled.
-        // setupChat() will then be called during onActivityResult
-        if (!mBluetoothAdapter.isEnabled()) {
+        if (!_bluetoothAdapter.isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, BluetoothLounge.REQUEST_ENABLE_BT);
-            // Otherwise, setup the chat session
         }
         else {
-            if (mBluetoothManager == null) mBluetoothManager = BluetoothManager.getInstance();
-            mBluetoothManager.startListening();
+            if (_bluetoothManager == null) _bluetoothManager = BluetoothManager.getInstance();
+            _bluetoothManager.startListening();
             //TODO stop listening when?
         }
     }
@@ -68,27 +66,39 @@ public class MainMenuActivity extends Activity {
     @Override
     public synchronized void onResume() {
         super.onResume();
-        if (D) Log.e(TAG, "+ ON RESUME +");
+        Log.d(TAG, "+ ON RESUME +");
 
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (mBluetoothManager != null) {
-            mBluetoothManager.registerHandler(mHandler);
+        if (_bluetoothManager != null) {
+            _bluetoothManager.registerHandler(mHandler);
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (D) Log.e(TAG, "+ ON RESUME +");
+        Log.d(TAG, "+ ON RESUME +");
 
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (mBluetoothManager != null) {
-            mBluetoothManager.unregisterHandler(mHandler);
+        if (_bluetoothManager != null) {
+            _bluetoothManager.unregisterHandler(mHandler);
         }
+    }
+
+    /**
+     * Sends a message to everyone except one person.
+     * @param json  A JSONObject to send.
+     * @param except A device to not send the message to.
+     */
+    private void sendMessage(JSONObject json, String except) {
+        String message = json.toString();
+        byte[] send = message.getBytes();
+        _bluetoothManager.writeToEveryone(send, except);
+
     }
 
     // The Handler that gets information back from the BluetoothChatService
@@ -97,7 +107,7 @@ public class MainMenuActivity extends Activity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case BluetoothLounge.MESSAGE_STATE_CHANGE:
-                    if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE");
+                    Log.i(TAG, "MESSAGE_STATE_CHANGE");
                     // TODO: check connection problems
                     break;
                 case BluetoothLounge.MESSAGE_WRITE:
@@ -112,7 +122,7 @@ public class MainMenuActivity extends Activity {
                         JSONObject json = new JSONObject(readMessage);
                         if (json.has(BluetoothManager.GAME_INVITATION)) {
 
-                            if (D) Log.d(TAG, "Received a game invitation");
+                            Log.d(TAG, "Received a game invitation");
 
                             long seed = json.getLong(InviteeLounge.GAME_SEED_PRE);
                             int playerNumber = json.getInt(InviteeLounge.PLAYER_NUMBER_PRE);
@@ -128,10 +138,10 @@ public class MainMenuActivity extends Activity {
                             bundle.putInt(InviteeLounge.PLAYER_NUMBER_PRE, playerNumber);
                             bundle.putStringArrayList(InviteeLounge.INITIAL_INVITED_LIST_PRE, invitedList);
                             invitation.setArguments(bundle);
+
                             // Doing this check to hopefully prevent the exception I was getting:
                             // java.lang.IllegalStateException: Can not perform this action after
                             // onSaveInstanceState dialogfragment
-
                             if (!MainMenuActivity.this.isFinishing())
                             {
                                 invitation.show(MainMenuActivity.this.getFragmentManager(), TAG);
@@ -147,7 +157,7 @@ public class MainMenuActivity extends Activity {
     };
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(D) Log.d(TAG, "onActivityResult " + resultCode);
+        Log.d(TAG, "onActivityResult " + resultCode);
         switch (requestCode) {
             case BluetoothLounge.REQUEST_CONNECT_DEVICE:
                 // When DeviceListActivity returns with a device to connect
@@ -156,17 +166,17 @@ public class MainMenuActivity extends Activity {
                     String address = data.getExtras()
                             .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
                     // Get the BLuetoothDevice object
-                    BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+                    BluetoothDevice device = _bluetoothAdapter.getRemoteDevice(address);
                     // Attempt to connect to the device
-                    mBluetoothManager.connect(device);
+                    _bluetoothManager.connect(device);
                 }
                 break;
             case BluetoothLounge.REQUEST_ENABLE_BT:
                 // When the request to enable Bluetooth returns
                 if (resultCode == Activity.RESULT_OK) {
                     // Bluetooth is now enabled, so set up a chat session
-                    mBluetoothManager = BluetoothManager.getInstance();
-                    mBluetoothManager.startListening();
+                    _bluetoothManager = BluetoothManager.getInstance();
+                    _bluetoothManager.startListening();
                 } else {
                     // User did not enable Bluetooth or an error occured
                     Log.d(TAG, "BT not enabled");
@@ -176,4 +186,18 @@ public class MainMenuActivity extends Activity {
         }
     }
 
+    @Override
+    public void doAction(Object obj) {
+        if (obj.equals(GameInvitationFragment.DECLINE_INVITATION)) {
+            // send a message to notify connections that you are declining the game.
+            JSONObject json = new JSONObject();
+            try {
+                json.put(InviteeLounge.LEFT_OR_DECLINED_INVITATION, _bluetoothAdapter.getAddress());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            sendMessage(json, "");
+        }
+
+    }
 }

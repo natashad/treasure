@@ -27,7 +27,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".BluetoothLounge"
-            android:noHistory="true"
+            android:noHistory="false"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/app_name"
             android:screenOrientation="portrait" />

@@ -25,7 +25,6 @@ import endee.fried.treasure.UI.GameActivity;
 public class InviteeLounge extends Activity {
 
     // CONSTANTS
-    
     public static final String TAG = InviteeLounge.class.getName();
     public static final String READY_STRING = "ReadyToStart";
     public static final String ACCEPTED_LIST_PRE = "accptedPeople";
@@ -34,10 +33,11 @@ public class InviteeLounge extends Activity {
     public static final String INITIAL_INVITED_LIST_PRE = "InvitedPlayers";
     public static final String PLAYER_NUMBER_PRE = "PlayerNum";
     public static final String NUMBER_OF_PLAYERS  = "NumberOfPlayers";
+    public static final String JOINED_INVITEE_LOUNGE = "JoinedInviteeLounge";
+    public static final String LEFT_OR_DECLINED_INVITATION = "LeftOrDeclinedInvitation";
 
 
-    // Member Variables
-
+    // MEMBER VARIABLES
     private long _gameSeed;
     private int _playerNumber;
     private BluetoothAdapter _bluetoothAdapter = null;
@@ -159,8 +159,19 @@ public class InviteeLounge extends Activity {
             startActivityForResult(enableIntent, BluetoothLounge.REQUEST_ENABLE_BT);
         }
         else {
-            if (_bluetoothManager == null) _bluetoothManager = BluetoothManager.getInstance();;
+            if (_bluetoothManager == null) _bluetoothManager = BluetoothManager.getInstance();
             _bluetoothManager.startListening();
+
+            // send a message to notify connections that you are in the lounge so that you can
+            // receive an updated list of the members and their status!
+            JSONObject json = new JSONObject();
+            try {
+                json.put(JOINED_INVITEE_LOUNGE, true);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            sendMessage(json, "");
+
         }
     }
 
@@ -191,6 +202,21 @@ public class InviteeLounge extends Activity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "+ ON DESTROY +");
+
+        // send a message to notify connections that you are leaving the lounge.
+        JSONObject json = new JSONObject();
+        try {
+            json.put(LEFT_OR_DECLINED_INVITATION, _bluetoothAdapter.getAddress());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        sendMessage(json, "");
+    }
+
+    @Override
     public void onBackPressed() {
         super.onBackPressed();
         Log.d(TAG, "+ ON BACK PRESSED +");
@@ -199,15 +225,26 @@ public class InviteeLounge extends Activity {
     }
 
     /**
-     * Sends a message.
+     * Sends a message to everyone except one person.
      * @param json  A JSONObject to send.
+     * @param except A device to not send the message to.
      */
     private void sendMessage(JSONObject json, String except) {
         String message = json.toString();
-
         byte[] send = message.getBytes();
         _bluetoothManager.writeToEveryone(send, except);
 
+    }
+
+    /**
+     * Send a message to just one recipient.
+     * @param json
+     * @param deviceAddress
+     */
+    private void sendMessageToOne(JSONObject json, String deviceAddress) {
+        String message = json.toString();
+        byte[] send = message.getBytes();
+        _bluetoothManager.write(send, deviceAddress);
     }
 
     // The Handler that gets information back from the BluetoothChatService
@@ -266,6 +303,28 @@ public class InviteeLounge extends Activity {
                             }
                         }
 
+                        if (json.has(JOINED_INVITEE_LOUNGE)) {
+                            // Send someone who has just accepted an invitation an update on the state.
+                            JSONObject newJson = new JSONObject();
+                            newJson.put(WAITING_LIST_PRE, new JSONArray(_waitingList));
+                            newJson.put(ACCEPTED_LIST_PRE, new JSONArray(_acceptedList));
+                            InviteeLounge.this.sendMessageToOne(newJson, address);
+                        }
+
+                        if (json.has(LEFT_OR_DECLINED_INVITATION)) {
+                            // Send everyone a notice that this guy has left the invitation lounge.
+                            // Pull him out of the game.
+                            _waitingList.remove(address);
+                            _acceptedList.remove(address);
+
+                            JSONObject newJson = new JSONObject();
+                            newJson.put(LEFT_OR_DECLINED_INVITATION, address);
+
+                            InviteeLounge.this.sendMessage(newJson, address);
+
+                            Toast.makeText(InviteeLounge.this, address + " has quit the game." ,
+                                    Toast.LENGTH_SHORT).show();
+                        }
 
                     } catch (JSONException e) {
                         e.printStackTrace();

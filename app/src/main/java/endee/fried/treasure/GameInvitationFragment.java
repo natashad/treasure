@@ -15,9 +15,10 @@ import java.util.ArrayList;
 public class GameInvitationFragment extends DialogFragment {
 
     public static final String GAME_SEED = "GameSeed";
+    public static final String DECLINE_INVITATION = "Declined";
 
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
 
         final long seed = getArguments().getLong(GAME_SEED);
         final int playerNumber = getArguments().getInt(InviteeLounge.PLAYER_NUMBER_PRE);
@@ -40,7 +41,7 @@ public class GameInvitationFragment extends DialogFragment {
                 .setNegativeButton(R.string.decline_invitation, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-
+                        ((MainMenuActivity)getActivity()).doAction(DECLINE_INVITATION);
                     }
                 });
         return builder.create();

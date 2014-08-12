@@ -38,8 +38,6 @@ public class BluetoothManager {
         Connected
     }
 
-
-
     // CONSTANTS
     private static final String TAG = BluetoothManager.class.getName();
     // Name for the SDP record when creating server socket
@@ -52,11 +50,10 @@ public class BluetoothManager {
     public static final int STATE_LISTEN = 0x1;     // now listening for incoming connections
     public static final int STATE_CONNECTING = 0x2; // now initiating an outgoing connection
 
-    // Singleton instance of Self.
+    // SINGLETON INSTANCE OF SELF
     private static BluetoothManager _self;
 
-    // MEMBER FIELDS
-
+    // MEMBER VARIABLES
     private final BluetoothAdapter _bluetoothAdapter;
     private List<Handler> _handlers = new ArrayList<Handler>();
     private AcceptThread _acceptThread;
@@ -430,13 +427,13 @@ public class BluetoothManager {
         private final BluetoothSocket __socket;
         private final InputStream __inStream;
         private final OutputStream __outStream;
-        private final BluetoothDevice __bluetoothDevice;
+        private final BluetoothDevice __device;
 
         public ConnectedThread(BluetoothSocket socket, BluetoothDevice bluetoothDevice) {
             Log.d(TAG, "create ConnectedThread");
 
             __socket = socket;
-            __bluetoothDevice = bluetoothDevice;
+            __device = bluetoothDevice;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
@@ -467,14 +464,14 @@ public class BluetoothManager {
                     for (Handler h : _handlers) {
                         Message message = h.obtainMessage(BluetoothLounge.MESSAGE_READ, bytes, -1, buffer);
                         Bundle bundle = new Bundle();
-                        bundle.putString(BluetoothLounge.DEVICE_ADDRESS, __bluetoothDevice.getAddress());
+                        bundle.putString(BluetoothLounge.DEVICE_ADDRESS, __device.getAddress());
                         message.setData(bundle);
                         message.sendToTarget();
                     }
 
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
-                    connectionLost(__bluetoothDevice);
+                    connectionLost(__device);
                     break;
                 }
             }
