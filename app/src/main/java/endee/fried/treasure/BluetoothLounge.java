@@ -1,21 +1,5 @@
 package endee.fried.treasure;
 
-/*
- * Copyright (C) 2009 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -155,7 +139,6 @@ public class BluetoothLounge extends Activity {
                 }
 
                 Intent intent = new Intent(BluetoothLounge.this, InviteeLounge.class);
-                intent.putExtra(BluetoothManager.IS_HOST, true);
                 intent.putExtra(GameInvitationFragment.GAME_SEED, _seed);
                 // Host is always Player 0.
                 intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, 0);
@@ -326,7 +309,7 @@ public class BluetoothLounge extends Activity {
             case REQUEST_ENABLE_BT:
                 // When the request to enable Bluetooth returns
                 if (resultCode == Activity.RESULT_OK) {
-                    // Bluetooth is now enabled, so set up a chat session
+                    // Bluetooth is now enabled, so set up a BluetoothManager
                     _bluetoothManager = BluetoothManager.getInstance();
                 } else {
                     // User did not enable Bluetooth or an error occured

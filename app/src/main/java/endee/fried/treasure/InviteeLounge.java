@@ -24,9 +24,9 @@ import endee.fried.treasure.UI.GameActivity;
 
 public class InviteeLounge extends Activity {
 
-    //Debug
-    private static final boolean D = true;
-    public static final String TAG = "InviteeLounge";
+    // CONSTANTS
+    
+    public static final String TAG = InviteeLounge.class.getName();
     public static final String READY_STRING = "ReadyToStart";
     public static final String ACCEPTED_LIST_PRE = "accptedPeople";
     public static final String WAITING_LIST_PRE = "waitingPeople";
@@ -36,50 +36,57 @@ public class InviteeLounge extends Activity {
     public static final String NUMBER_OF_PLAYERS  = "NumberOfPlayers";
 
 
-    private boolean mIsHost = false;
-    private long mGameSeed;
-    private int mPlayerNumber;
+    // Member Variables
 
-    // Local Bluetooth adapter
-    private BluetoothAdapter mBluetoothAdapter = null;
-    private BluetoothManager mBluetoothManager = null;
-    private ArrayAdapter<String> mAcceptedAdapter;
-    private ArrayAdapter<String> mWaitingAdapter;
-    private ArrayList<String> mAcceptedList = new ArrayList<String>();
-    private ArrayList<String> mWaitingList = new ArrayList<String>();
+    private long _gameSeed;
+    private int _playerNumber;
+    private BluetoothAdapter _bluetoothAdapter = null;
+    private BluetoothManager _bluetoothManager = null;
+    private ArrayAdapter<String> _acceptedAdapter;
+    private ArrayAdapter<String> _waitingAdapter;
+    private ArrayList<String> _acceptedList = new ArrayList<String>();
+    private ArrayList<String> _waitingList = new ArrayList<String>();
     
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_invitee_lounge);
 
-        mIsHost = getIntent().getExtras().getBoolean(BluetoothManager.IS_HOST);
-        mGameSeed = getIntent().getExtras().getLong(GameInvitationFragment.GAME_SEED);
-        mPlayerNumber = getIntent().getExtras().getInt(InviteeLounge.PLAYER_NUMBER_PRE);
-        mWaitingList = getIntent().getExtras().getStringArrayList(INITIAL_INVITED_LIST_PRE);
-
-        ListView acceptedDevicesList = (ListView) findViewById(R.id.acceptedPlayersList);
-        mAcceptedAdapter = new ArrayAdapter<String>(this,
-                R.layout.invitee_list_element);
-        acceptedDevicesList.setAdapter(mAcceptedAdapter);
-
-        ListView waitingDevicesList = (ListView) findViewById(R.id.waitingPlayersList);
-        mWaitingAdapter = new ArrayAdapter<String>(this,
-                R.layout.invitee_list_element);
-        waitingDevicesList.setAdapter(mWaitingAdapter);
-        mWaitingAdapter.addAll(mWaitingList);
+        _gameSeed = getIntent().getExtras().getLong(GameInvitationFragment.GAME_SEED);
+        _playerNumber = getIntent().getExtras().getInt(InviteeLounge.PLAYER_NUMBER_PRE);
+        _waitingList = getIntent().getExtras().getStringArrayList(INITIAL_INVITED_LIST_PRE);
 
         // Get local Bluetooth adapter
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        _bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // If the adapter is null, then Bluetooth is not supported
-        if (mBluetoothAdapter == null) {
+        if (_bluetoothAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
+        setUpUI();
+
+    }
+
+    private void setUpUI() {
+        // Set up the list of Accepted Players.
+        ListView acceptedDevicesList = (ListView) findViewById(R.id.acceptedPlayersList);
+        _acceptedAdapter = new ArrayAdapter<String>(this,
+                R.layout.invitee_list_element);
+        acceptedDevicesList.setAdapter(_acceptedAdapter);
+
+        // Set up the list of players that we are waiting on.
+        ListView waitingDevicesList = (ListView) findViewById(R.id.waitingPlayersList);
+        _waitingAdapter = new ArrayAdapter<String>(this,
+                R.layout.invitee_list_element);
+        waitingDevicesList.setAdapter(_waitingAdapter);
+        _waitingAdapter.addAll(_waitingList);
+
+        // Handle the onClick of the READY button.
         final ToggleButton readyButton = ((ToggleButton) findViewById(R.id.readyButton));
         readyButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,8 +97,8 @@ public class InviteeLounge extends Activity {
                         json.put(READY_STRING, true);
                         sendMessage(json, "");
 
-                        mAcceptedList.add(mBluetoothAdapter.getAddress());
-                        mWaitingList.remove(mBluetoothAdapter.getAddress());
+                        _acceptedList.add(_bluetoothAdapter.getAddress());
+                        _waitingList.remove(_bluetoothAdapter.getAddress());
 
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -104,8 +111,8 @@ public class InviteeLounge extends Activity {
                         json.put(READY_STRING, false);
                         sendMessage(json, "");
 
-                        mWaitingList.add(mBluetoothAdapter.getAddress());
-                        mAcceptedList.remove(mBluetoothAdapter.getAddress());
+                        _waitingList.add(_bluetoothAdapter.getAddress());
+                        _acceptedList.remove(_bluetoothAdapter.getAddress());
 
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -115,80 +122,80 @@ public class InviteeLounge extends Activity {
             }
         });
 
+    }
 
+    // Based on the acceptedList and waitingList update the UI.
+    // Call this on any changes to those 2 lists and if the waiting list
+    // is empty, start the game!
+    private void updateArrayAdapters() {
+        _acceptedAdapter.clear();
+        for (String accepted : _acceptedList) {
+            _acceptedAdapter.add(accepted);
+        }
+
+        _waitingAdapter.clear();
+        for (String waiting : _waitingList) {
+            _waitingAdapter.add(waiting);
+        }
+
+        if (_waitingList.isEmpty()) {
+            Intent intent = new Intent(this, GameActivity.class);
+            intent.putExtra(GameInvitationFragment.GAME_SEED, _gameSeed);
+            intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, _playerNumber);
+            intent.putExtra(InviteeLounge.NUMBER_OF_PLAYERS, _acceptedList.size());
+            this.startActivity(intent);
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        if(D) Log.e(TAG, "++ ON START ++");
+        Log.d(TAG, "++ ON START ++");
 
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
-        if (!mBluetoothAdapter.isEnabled()) {
+        if (!_bluetoothAdapter.isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, BluetoothLounge.REQUEST_ENABLE_BT);
-            // Otherwise, setup the chat session
         }
         else {
-            if (mBluetoothManager == null) mBluetoothManager = BluetoothManager.getInstance();;
-            mBluetoothManager.startListening();
+            if (_bluetoothManager == null) _bluetoothManager = BluetoothManager.getInstance();;
+            _bluetoothManager.startListening();
         }
     }
 
     @Override
     public synchronized void onResume() {
         super.onResume();
-        if(D) Log.e(TAG, "+ ON RESUME +");
+        Log.d(TAG, "+ ON RESUME +");
 
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (mBluetoothManager != null) {
-            mBluetoothManager.registerHandler(mHandler);
+        if (_bluetoothManager != null) {
+            _bluetoothManager.registerHandler(mHandler);
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if(D) Log.e(TAG, "+ ON RESUME +");
+        Log.d(TAG, "+ ON RESUME +");
 
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (mBluetoothManager != null) {
-            mBluetoothManager.unregisterHandler(mHandler);
+        if (_bluetoothManager != null) {
+            _bluetoothManager.unregisterHandler(mHandler);
         }
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        Log.d(TAG, "+ ON BACK PRESSED +");
 
-        mBluetoothManager.stopListening();
-    }
-
-    public static String convertStringArrayToBigString(String[] input, String prefix) {
-        String ret = prefix;
-        for (String in : input) {
-            ret += in + "||";
-        }
-        return ret;
-    }
-
-    public static ArrayList<String> convertBigStringToStringList(String input, String prefix) {
-        String in = input;
-        ArrayList<String> output = new ArrayList<String>();
-        if (input.startsWith(prefix)) {
-            in = input.substring(prefix.length());
-        }
-        while(in.indexOf("||") != -1) {
-            output.add(in.substring(0, in.indexOf("||")));
-            in = in.substring(in.indexOf("||") + 2);
-        }
-
-        return output;
+        _bluetoothManager.stopListening();
     }
 
     /**
@@ -198,30 +205,9 @@ public class InviteeLounge extends Activity {
     private void sendMessage(JSONObject json, String except) {
         String message = json.toString();
 
-        // Check that there's actually something to send
-        if (message.length() > 0) {
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
-            mBluetoothManager.writeToEveryone(send, except);
-        }
-    }
+        byte[] send = message.getBytes();
+        _bluetoothManager.writeToEveryone(send, except);
 
-    private void updateArrayAdapters() {
-        mAcceptedAdapter.clear();
-        for (String accepted : mAcceptedList) {
-            mAcceptedAdapter.add(accepted);
-        }
-        mWaitingAdapter.clear();
-        for (String waiting : mWaitingList) {
-            mWaitingAdapter.add(waiting);
-        }
-        if (mWaitingList.isEmpty()) {
-            Intent intent = new Intent(this, GameActivity.class);
-            intent.putExtra(GameInvitationFragment.GAME_SEED, mGameSeed);
-            intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, mPlayerNumber);
-            intent.putExtra(InviteeLounge.NUMBER_OF_PLAYERS, mAcceptedList.size());
-            this.startActivity(intent);
-        }
     }
 
     // The Handler that gets information back from the BluetoothChatService
@@ -230,15 +216,12 @@ public class InviteeLounge extends Activity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case BluetoothLounge.MESSAGE_STATE_CHANGE:
-                    if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE");
+                    Log.i(TAG, "MESSAGE_STATE_CHANGE");
                     // TODO: display connection error messages
-                    break;
-                case BluetoothLounge.MESSAGE_WRITE:
-                    byte[] writeBuf = (byte[]) msg.obj;
-
                     break;
                 case BluetoothLounge.MESSAGE_READ:
                     Log.i(TAG, "RECEIVING A MESSAGE" + new String((byte[])msg.obj));
+
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
@@ -249,16 +232,17 @@ public class InviteeLounge extends Activity {
 
                         if (json.has(READY_STRING)) {
                             if (json.getBoolean(READY_STRING)) {
-                                mWaitingList.remove(address);
-                                mAcceptedList.add(address);
+                                _waitingList.remove(address);
+                                _acceptedList.add(address);
 
                             } else {
-                                mWaitingList.add(address);
-                                mAcceptedList.remove(address);
+                                _waitingList.add(address);
+                                _acceptedList.remove(address);
                             }
+
                             JSONObject newJson = new JSONObject();
-                            newJson.put(WAITING_LIST_PRE, new JSONArray(mWaitingList));
-                            newJson.put(ACCEPTED_LIST_PRE, new JSONArray(mAcceptedList));
+                            newJson.put(WAITING_LIST_PRE, new JSONArray(_waitingList));
+                            newJson.put(ACCEPTED_LIST_PRE, new JSONArray(_acceptedList));
                             InviteeLounge.this.sendMessage(newJson, address);
                         }
 
@@ -266,9 +250,9 @@ public class InviteeLounge extends Activity {
 
                             JSONArray jsonArray = ((JSONArray)json.get(WAITING_LIST_PRE));
 
-                            mWaitingList.clear();
+                            _waitingList.clear();
                             for (int i = 0; i < jsonArray.length(); i++) {
-                                mWaitingList.add(jsonArray.getString(i));
+                                _waitingList.add(jsonArray.getString(i));
                             }
                         }
 
@@ -276,9 +260,9 @@ public class InviteeLounge extends Activity {
 
                             JSONArray jsonArray = ((JSONArray)json.get(ACCEPTED_LIST_PRE));
 
-                            mAcceptedList.clear();
+                            _acceptedList.clear();
                             for (int i = 0; i < jsonArray.length(); i++) {
-                                mAcceptedList.add(jsonArray.getString(i));
+                                _acceptedList.add(jsonArray.getString(i));
                             }
                         }
 
@@ -294,7 +278,7 @@ public class InviteeLounge extends Activity {
     };
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (D) Log.d(TAG, "onActivityResult " + resultCode);
+        Log.d(TAG, "onActivityResult " + resultCode);
         switch (requestCode) {
             case BluetoothLounge.REQUEST_CONNECT_DEVICE:
                 // When DeviceListActivity returns with a device to connect
@@ -303,16 +287,16 @@ public class InviteeLounge extends Activity {
                     String address = data.getExtras()
                             .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
                     // Get the BLuetoothDevice object
-                    BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+                    BluetoothDevice device = _bluetoothAdapter.getRemoteDevice(address);
                     // Attempt to connect to the device
-                    mBluetoothManager.connect(device);
+                    _bluetoothManager.connect(device);
                 }
                 break;
             case BluetoothLounge.REQUEST_ENABLE_BT:
                 // When the request to enable Bluetooth returns
                 if (resultCode == Activity.RESULT_OK) {
-                    // Bluetooth is now enabled, so set up a chat session
-                    mBluetoothManager = BluetoothManager.getInstance();
+                    // Bluetooth is now enabled, so set up a BluetoothManager
+                    _bluetoothManager = BluetoothManager.getInstance();
                 } else {
                     // User did not enable Bluetooth or an error occured
                     Log.d(TAG, "BT not enabled");

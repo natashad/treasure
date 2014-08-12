@@ -45,7 +45,6 @@ public class BluetoothManager {
     // Name for the SDP record when creating server socket
     private static final String NAME = "BluetoothConnection";
     public static final String GAME_INVITATION = "__invitation_to_treasure__";
-    public static final String IS_HOST = "IAmTheHost";
     // Unique UUID for this application
     private static final UUID MY_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
     // Constants that indicate the current connection state
