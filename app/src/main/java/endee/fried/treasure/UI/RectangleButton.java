@@ -14,6 +14,8 @@ public class RectangleButton extends Button {
     private float _height;
 
     private String _text;
+    private int  _textColor = Color.WHITE;
+    private int _borderColor = Color.BLACK;
 
     public RectangleButton(float centerX, float centerY, float width, float height, String text, Callback onClick) {
         super(centerX, centerY, onClick);
@@ -22,6 +24,8 @@ public class RectangleButton extends Button {
         _height = height;
         _text = text;
     }
+
+    public void setTextColor(int color) { _textColor = color; }
 
     public float getWidth() {
         return _width;
@@ -39,19 +43,22 @@ public class RectangleButton extends Button {
     }
 
     @Override
-    protected void drawButton(Canvas canvas, Paint paint, int color) {
+    protected void drawButton(Canvas canvas, Paint paint, int activeColorClicked, int activeColorUnclicked, int inactiveColor, int textColor) {
+
+        int backgroundColor = _active ? (_clicked ? activeColorClicked : activeColorUnclicked) : inactiveColor;
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(color);
+        paint.setColor(backgroundColor);
         canvas.drawRect(getX() - _width/2, getY() - _height/2, getX() + _width/2, getY() + _height/2, paint);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.BLACK);
+        paint.setColor(_borderColor);
         paint.setStrokeWidth(Math.min(10f, _height / 20f));
         canvas.drawRect(getX() - _width/2, getY() - _height/2, getX() + _width/2, getY() + _height/2, paint);
 
 
         if(!_text.isEmpty()) {
 
-            paint.setColor(Color.WHITE);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(_textColor);
             paint.setTextSize(_height / 2);
 
             Rect rect = new Rect();

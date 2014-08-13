@@ -33,14 +33,14 @@ public class TileButton extends CircleButton {
     @Override
     public void draw(Canvas canvas, Paint paint) {
         if(_game.getLocalPlayer().getTile() == _tileID) {
-            drawButton(canvas, paint, Color.YELLOW);
+            drawButton(canvas, paint, Color.YELLOW, Color.YELLOW, Color.YELLOW, Color.YELLOW);
         } else if(isNeighbour() && !_game.hasMadeMove()) {
             super.draw(canvas, paint);
         } else {
             if(_game.getTile(_tileID).isDiscovered()) {
-                drawButton(canvas, paint, Color.GRAY);
+                drawButton(canvas, paint, Color.GRAY, Color.GRAY, Color.GRAY, Color.GRAY);
             } else {
-                drawButton(canvas, paint, Color.BLACK);
+                drawButton(canvas, paint, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK);
             }
         }
 
@@ -64,7 +64,11 @@ public class TileButton extends CircleButton {
     }
 
     @Override
-    protected void drawButton(Canvas canvas, Paint paint, int color) {
+    protected void drawButton(Canvas canvas, Paint paint, int activeColorClicked, int activeColorUnclicked, int inactiveColor, int textColor) {
+
+        int color = _active ? (_clicked ? activeColorClicked : activeColorUnclicked) : inactiveColor;
+
+
         paint.setColorFilter(new LightingColorFilter(color, 0));
 
         float scale = getRadius() * 2 / _image.getWidth();

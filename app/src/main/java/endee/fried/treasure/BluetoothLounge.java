@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import endee.fried.treasure.Bluetooth.BluetoothConnection;
+
 /**
  * This is the main Activity that displays the current chat session.
  */
@@ -339,33 +341,6 @@ public class BluetoothLounge extends Activity {
                 return true;
         }
         return false;
-    }
-
-    /**
-     * Class that represents a single BluetoothConnection. Stores address and name.
-     */
-    public class BluetoothConnection {
-
-        private String name;
-        private String address;
-
-        public BluetoothConnection(String name, String address) {
-            this.name = name;
-            this.address = address;
-        }
-
-        public String getName() {
-            return this.name;
-        }
-
-        public String getAddress() {
-            return this.address;
-        }
-
-        @Override
-        public String toString() {
-            return this.name;
-        }
     }
 
 }

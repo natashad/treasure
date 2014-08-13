@@ -13,7 +13,7 @@ public abstract class Button {
     private float _centerX;
     private float _centerY;
 
-    private boolean _active;
+    protected boolean _active;
     protected boolean _clicked;
 
     protected final Callback _onClick;
@@ -40,6 +40,10 @@ public abstract class Button {
         return _centerY;
     }
 
+    public void setX( float centerX ) { _centerX = centerX; }
+
+    public void setY( float centerY ) { _centerY = centerY; }
+
     /**
      * returns true if the Point at x,y is within bounds of the location.
      * @param x
@@ -47,10 +51,10 @@ public abstract class Button {
      */
     protected abstract boolean isInBounds(float x, float y);
 
-    protected abstract void drawButton(Canvas canvas, Paint paint, int color);
+    protected abstract void drawButton(Canvas canvas, Paint paint, int activeColorClicked, int activeColorUnclicked, int inactiveColor, int textColor);
 
     public void draw(Canvas canvas, Paint paint) {
-        drawButton(canvas, paint, _active ? (_clicked ? Color.GREEN : Color.RED ): Color.GRAY);
+        drawButton(canvas, paint, Color.GREEN, Color.RED, Color.GRAY, Color.WHITE);
     }
 
     public boolean update(float touchX, float touchY, int eventAction) {

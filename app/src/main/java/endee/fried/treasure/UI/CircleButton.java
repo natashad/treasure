@@ -27,7 +27,9 @@ public class CircleButton extends Button {
     }
 
     @Override
-    protected void drawButton(Canvas canvas, Paint paint, int color) {
+    protected void drawButton(Canvas canvas, Paint paint, int activeColorClicked, int activeColorUnclicked, int inactiveColor, int textColor) {
+
+        int color = _active ? (_clicked ? activeColorClicked : activeColorUnclicked) : inactiveColor;
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(color);
         canvas.drawCircle(getX(), getY(), _radius, paint);

@@ -32,5 +32,6 @@
     <string name="discoverable">Make discoverable</string>
     <string name="title_activity_invitee_lounge">InviteeLounge</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_temporary">TemporaryActivity</string>
 
 </resources>
