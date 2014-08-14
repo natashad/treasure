@@ -15,6 +15,7 @@ import android.view.SurfaceView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import endee.fried.treasure.Bluetooth.BluetoothConnection;
 import endee.fried.treasure.TemporaryActivity;
@@ -70,6 +71,32 @@ public class LoungeView extends SurfaceView {
                     }
                 });
 
+        Set<BluetoothDevice> pairedDevices = _bluetoothAdapter.getBondedDevices();
+
+        // If there are paired devices, add each one to the ArrayAdapter
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                final String name = device.getName();
+                final String address = device.getAddress();
+                _availableConnections.add(new BluetoothConnection(device.getName(), device.getAddress()));
+                _availableConButtons.add(new RectangleButton(_screenPixelWidth / 2, -1,
+                        _screenPixelWidth, _screenPixelHeight * 0.05f, name,
+                        new Callback() {
+                            @Override
+                            public void doAction(Object obj) {
+
+                                // Get the BLuetoothDevice object
+                                BluetoothDevice device = _bluetoothAdapter.getRemoteDevice(address);
+                                // Attempt to connect to the device
+                                ((TemporaryActivity) getContext()).connectToDevice(device);
+                                ((TemporaryActivity) getContext()).connectToDevice(device);
+                            }
+                        }
+                ));
+            }
+
+        }
+
     }
 
     @Override
@@ -80,31 +107,15 @@ public class LoungeView extends SurfaceView {
 
         int count = 0;
 
-        //TODO: FIX THIS COMPLETELY.
+        ListUI connList = new ListUI();
+
         for (BluetoothConnection conn : ((TemporaryActivity)getContext()).getConnectedDevices().values()) {
-            p.setStyle(Paint.Style.FILL);
-            p.setColor(Color.WHITE);
-
-            float y = count * _screenPixelHeight * 0.05f;
-
-            canvas.drawRect(0, y,
-                    _screenPixelWidth, _screenPixelHeight * 0.05f,
-                    p);
-            p.setStyle(Paint.Style.STROKE);
-            p.setColor(Color.BLACK);
-            canvas.drawRect(0, y,
-                    _screenPixelWidth, _screenPixelHeight * 0.05f,
-                    p);
-
-            p.setStyle(Paint.Style.FILL);
-            p.setColor(Color.BLACK);
-            p.setTextSize(30);
-            //TODO : Use real measurements here
-            canvas.drawText(conn.getName(), _screenPixelWidth / 2, y + 0.2f, p);
-            count += 1;
+            connList.addListItem(new ConnectedDeviceListItem(conn.getName(), _screenPixelHeight*0.05f, _screenPixelWidth));
         }
 
-        float offset = count * _screenPixelHeight * 0.05f;
+        connList.draw(canvas);
+
+        float offset = connList.getHeight() + (_screenPixelHeight * 0.03f);
 
         p = new Paint();
         _scanButton.setY( (_screenPixelHeight * _buttonHeightScale) + offset );
