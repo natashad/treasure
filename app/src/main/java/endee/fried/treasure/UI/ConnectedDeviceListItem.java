@@ -19,42 +19,37 @@ public class ConnectedDeviceListItem implements ListItemUI {
 
     private float _height;
     private float _width;
-    private float _x = 0;
-    private float _y;
-    private Paint _paint;
     private String _text;
 
 
     public ConnectedDeviceListItem(String text, float height, float width) {
         _height = height;
         _width = width;
-        _paint = new Paint();
         _text = text;
     }
 
     @Override
-    public void draw(Canvas canvas, float y) {
-        _y = y;
-        _paint.setStyle(Paint.Style.FILL);
-        _paint.setColor(BACKGROUND_COLOR);
-        canvas.drawRect(_x, y, _width, _height + y, _paint);
+    public void drawListItem(Canvas canvas, Paint paint) {
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(BACKGROUND_COLOR);
+        canvas.drawRect(0, 0, _width, _height, paint);
 
-        _paint.setStyle(Paint.Style.STROKE);
-        _paint.setColor(BORDER_COLOR);
-        _paint.setStrokeWidth(STROKE_WIDTH);
-        canvas.drawRect(_x, y, _width, _height + y, _paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(BORDER_COLOR);
+        paint.setStrokeWidth(STROKE_WIDTH);
+        canvas.drawRect(0, 0, _width, _height, paint);
 
-        _paint.setStyle(Paint.Style.FILL);
-        _paint.setColor(TEXT_COLOR);
-        _paint.setTextSize(_height / 2);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(TEXT_COLOR);
+        paint.setTextSize(_height / 2);
 
         Rect rect = new Rect();
-        _paint.getTextBounds(_text, 0, _text.length(), rect);
+        paint.getTextBounds(_text, 0, _text.length(), rect);
 
         // To center text
 //        canvas.drawText(_text, (_width - rect.width()) / 2, y + _height/2 + rect.height() / 2, _paint);
         // Left justified text.
-        canvas.drawText(_text, _width*0.02f, y + _height/2 + rect.height() / 2, _paint);
+        canvas.drawText(_text, _width*0.02f, _height/2 + rect.height() / 2, paint);
 
 
     }

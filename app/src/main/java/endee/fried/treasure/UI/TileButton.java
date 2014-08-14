@@ -32,17 +32,7 @@ public class TileButton extends CircleButton {
 
     @Override
     public void draw(Canvas canvas, Paint paint) {
-        if(_game.getLocalPlayer().getTile() == _tileID) {
-            drawButton(canvas, paint, Color.YELLOW, Color.YELLOW, Color.YELLOW, Color.YELLOW);
-        } else if(isNeighbour() && !_game.hasMadeMove()) {
-            super.draw(canvas, paint);
-        } else {
-            if(_game.getTile(_tileID).isDiscovered()) {
-                drawButton(canvas, paint, Color.GRAY, Color.GRAY, Color.GRAY, Color.GRAY);
-            } else {
-                drawButton(canvas, paint, Color.BLACK, Color.BLACK, Color.BLACK, Color.BLACK);
-            }
-        }
+        super.draw(canvas, paint);
 
         for(int i = 0; i < _game.getNumPlayers(); i++) {
             Player p = _game.getPlayer(i);
@@ -64,12 +54,23 @@ public class TileButton extends CircleButton {
     }
 
     @Override
-    protected void drawButton(Canvas canvas, Paint paint, int activeColorClicked, int activeColorUnclicked, int inactiveColor, int textColor) {
+    protected int getCurrentBackgroundColor() {
+        if(_game.getLocalPlayer().getTile() == _tileID) {
+            return Color.YELLOW;
+        } else if(isNeighbour() && !_game.hasMadeMove()) {
+            return super.getCurrentBackgroundColor();
+        } else {
+            if(_game.getTile(_tileID).isDiscovered()) {
+                return Color.GRAY;
+            } else {
+                return Color.BLACK;
+            }
+        }
+    }
 
-        int color = _active ? (_clicked ? activeColorClicked : activeColorUnclicked) : inactiveColor;
-
-
-        paint.setColorFilter(new LightingColorFilter(color, 0));
+    @Override
+    protected void drawButton(Canvas canvas, Paint paint) {
+        paint.setColorFilter(new LightingColorFilter(getCurrentBackgroundColor(), 0));
 
         float scale = getRadius() * 2 / _image.getWidth();
 

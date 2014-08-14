@@ -1,21 +1,21 @@
 package endee.fried.treasure.UI;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 /**
  * Created by natasha on 2014-08-05.
  */
-public class RectangleButton extends Button {
+public class RectangleButton extends Button implements ListItemUI {
 
     private float _width;
     private float _height;
 
     private String _text;
-    private int  _textColor = Color.WHITE;
-    private int _borderColor = Color.BLACK;
+
+    private RectF _rect;
 
     public RectangleButton(float centerX, float centerY, float width, float height, String text, Callback onClick) {
         super(centerX, centerY, onClick);
@@ -23,9 +23,21 @@ public class RectangleButton extends Button {
         _width = width;
         _height = height;
         _text = text;
+
+        _rect = new RectF(getX() - _width/2, getY() - _height/2, getX() + _width/2, getY() + _height/2);
     }
 
-    public void setTextColor(int color) { _textColor = color; }
+    @Override
+    public void setX(float centerX) {
+        _rect.offset(centerX - getX(), 0);
+        super.setX(centerX);
+    }
+
+    @Override
+    public void setY(float centerY) {
+        _rect.offset(0, centerY - getY());
+        super.setY(centerY);
+    }
 
     public float getWidth() {
         return _width;
@@ -38,33 +50,38 @@ public class RectangleButton extends Button {
 
     @Override
     protected boolean isInBounds(float x, float y) {
-        return x > getX() - _width/2 && x < getX() + _width/2 &&
-                y > getY() - _height/2 && y < getY() + _height/2;
+        return _rect.contains(x, y);
     }
 
     @Override
-    protected void drawButton(Canvas canvas, Paint paint, int activeColorClicked, int activeColorUnclicked, int inactiveColor, int textColor) {
+    public void drawListItem(Canvas canvas, Paint paint) {
+        drawButton(canvas, paint);
+    }
 
-        int backgroundColor = _active ? (_clicked ? activeColorClicked : activeColorUnclicked) : inactiveColor;
+    @Override
+    protected void drawButton(Canvas canvas, Paint paint) {
+
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(backgroundColor);
-        canvas.drawRect(getX() - _width/2, getY() - _height/2, getX() + _width/2, getY() + _height/2, paint);
+        paint.setColor(getCurrentBackgroundColor());
+        canvas.drawRect(_rect, paint);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(_borderColor);
+        paint.setColor(getBorderColor());
         paint.setStrokeWidth(Math.min(10f, _height / 20f));
-        canvas.drawRect(getX() - _width/2, getY() - _height/2, getX() + _width/2, getY() + _height/2, paint);
+        canvas.drawRect(_rect, paint);
 
 
         if(!_text.isEmpty()) {
 
             paint.setStyle(Paint.Style.FILL);
-            paint.setColor(_textColor);
+            paint.setColor(getTextColor());
             paint.setTextSize(_height / 2);
 
-            Rect rect = new Rect();
-            paint.getTextBounds(_text, 0, _text.length(), rect);
+            Rect textRect = new Rect();
+            paint.getTextBounds(_text, 0, _text.length(), textRect);
 
-            canvas.drawText(_text, getX() - rect.width() / 2, getY() + rect.height() / 2, paint);
+            canvas.drawText(_text, getX() - textRect.width() / 2, getY() + textRect.height() / 2, paint);
         }
     }
+
+
 }

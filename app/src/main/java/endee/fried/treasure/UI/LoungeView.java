@@ -113,7 +113,7 @@ public class LoungeView extends SurfaceView {
             connList.addListItem(new ConnectedDeviceListItem(conn.getName(), _screenPixelHeight*0.05f, _screenPixelWidth));
         }
 
-        connList.draw(canvas);
+        connList.draw(canvas, p);
 
         float offset = connList.getHeight() + (_screenPixelHeight * 0.03f);
 
@@ -137,8 +137,8 @@ public class LoungeView extends SurfaceView {
             for (Button b : _availableConButtons) {
 
                 b.setY(offset + (count * _screenPixelHeight * 0.05f));
-                ((RectangleButton)b).setTextColor(Color.BLACK);
-                b.drawButton(canvas, p, Color.DKGRAY, Color.GRAY, Color.WHITE, Color.BLACK);
+                b.setTextColor(Color.BLACK);
+                b.drawButton(canvas, p);
                 count += 1;
             }
 

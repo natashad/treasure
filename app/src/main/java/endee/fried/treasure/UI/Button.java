@@ -16,6 +16,12 @@ public abstract class Button {
     protected boolean _active;
     protected boolean _clicked;
 
+    private int _baseColor;
+    private int _clickedColor;
+    private int _inactiveColor;
+    private int _borderColor;
+    private int _textColor;
+
     protected final Callback _onClick;
 
     public Button(float centerX, float centerY, Callback onClick) {
@@ -24,6 +30,13 @@ public abstract class Button {
         _onClick = onClick;
         _active = true;
         _clicked = false;
+
+        _baseColor = Color.argb(255, 153, 204, 255);
+        _inactiveColor = Color.DKGRAY;
+        _clickedColor = Color.argb(255, 204, 229, 255);
+        _borderColor = Color.BLACK;
+        _textColor = Color.BLACK;
+
     }
 
     public void setActive(boolean _active) {
@@ -44,6 +57,46 @@ public abstract class Button {
 
     public void setY( float centerY ) { _centerY = centerY; }
 
+    public int getBaseColor() {
+        return _baseColor;
+    }
+
+    public void setBaseColor(int baseColor) {
+        _baseColor = baseColor;
+    }
+
+    public int getClickedColor() {
+        return _clickedColor;
+    }
+
+    public void setClickedColor(int clickedColor) {
+        _clickedColor = clickedColor;
+    }
+
+    public int getInactiveColor() {
+        return _inactiveColor;
+    }
+
+    public void setInactiveColor(int inactiveColor) {
+        _inactiveColor = inactiveColor;
+    }
+
+    public int getTextColor() {
+        return _textColor;
+    }
+
+    public void setTextColor(int textColor) {
+        _textColor = textColor;
+    }
+
+    public int getBorderColor() {
+        return _borderColor;
+    }
+
+    public void setBorderColor(int borderColor) {
+        _borderColor = borderColor;
+    }
+
     /**
      * returns true if the Point at x,y is within bounds of the location.
      * @param x
@@ -51,10 +104,15 @@ public abstract class Button {
      */
     protected abstract boolean isInBounds(float x, float y);
 
-    protected abstract void drawButton(Canvas canvas, Paint paint, int activeColorClicked, int activeColorUnclicked, int inactiveColor, int textColor);
+    protected abstract void drawButton(Canvas canvas, Paint paint);
 
     public void draw(Canvas canvas, Paint paint) {
-        drawButton(canvas, paint, Color.GREEN, Color.RED, Color.GRAY, Color.WHITE);
+        drawButton(canvas, paint);
+    }
+
+    protected int getCurrentBackgroundColor() {
+        return _active ? (_clicked ? _clickedColor : _baseColor) : _inactiveColor;
+
     }
 
     public boolean update(float touchX, float touchY, int eventAction) {

@@ -5,6 +5,7 @@ package endee.fried.treasure.UI;
  */
 
 import android.graphics.Canvas;
+import android.graphics.Paint;
 
 import java.util.ArrayList;
 
@@ -15,25 +16,37 @@ public class ListUI {
 
     private static final String TAG = ListUI.class.getName();
 
-    private ArrayList<ListItemUI> _listItems = new ArrayList<ListItemUI>();
+    private final ArrayList<ListItemUI> _listItems;
     private float _height;
-    private float _width = 0;
+    private float _width;
 
 
     public ListUI() {
+        _listItems = new ArrayList<ListItemUI>();
+
+        _height = 0;
+        _width = 0;
     }
 
     public void addListItem(ListItemUI listItem) {
         _listItems.add(listItem);
+
+        _height += listItem.getHeight();
+        _width = Math.max(listItem.getWidth(), _width);
     }
 
-    public void draw(Canvas canvas) {
-        _height = 0;
+    public void draw(Canvas canvas, Paint paint) {
+        int currentHeight = 0;
+
+        canvas.save();
+
         for (ListItemUI item : _listItems) {
-            item.draw(canvas, _height);
-            _height += item.getHeight();
-            _width = Math.max(item.getWidth(), _width);
+            item.drawListItem(canvas, paint);
+            currentHeight += item.getHeight();
+            canvas.translate(0, item.getHeight());
         }
+
+        canvas.restore();
     }
 
     public float getWidth() { return _width; }

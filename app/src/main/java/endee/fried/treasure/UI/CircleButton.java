@@ -1,7 +1,6 @@
 package endee.fried.treasure.UI;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 
 /**
@@ -27,14 +26,12 @@ public class CircleButton extends Button {
     }
 
     @Override
-    protected void drawButton(Canvas canvas, Paint paint, int activeColorClicked, int activeColorUnclicked, int inactiveColor, int textColor) {
-
-        int color = _active ? (_clicked ? activeColorClicked : activeColorUnclicked) : inactiveColor;
+    protected void drawButton(Canvas canvas, Paint paint) {
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(color);
+        paint.setColor(getCurrentBackgroundColor());
         canvas.drawCircle(getX(), getY(), _radius, paint);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.BLACK);
+        paint.setColor(getBorderColor());
         paint.setStrokeWidth(Math.min(10f, _radius / 20f));
         canvas.drawCircle(getX(), getY(), _radius, paint);
     }
