@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -83,6 +85,16 @@ public class BluetoothManager {
         return _self;
     }
 
+
+    public void ensureDiscoverable(Context context) {
+        Log.d(TAG, "ensure discoverable");
+        if (_bluetoothAdapter.getScanMode() !=
+                BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            context.startActivity(discoverableIntent);
+        }
+    }
 
     /**
      * Register a handler to respond to Bluetooth Notifications.

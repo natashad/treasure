@@ -1,5 +1,6 @@
 package endee.fried.treasure.UI;
 
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -40,12 +41,19 @@ public class LoungeView extends SurfaceView {
     private int _screenPixelHeight;
     private boolean _isSearching = false;
 
+    ProgressDialog _scanningDialogue;
+
 
 
     public LoungeView(Context context) {
         super(context);
 
         setBackgroundColor(Color.WHITE);
+
+        _scanningDialogue = new ProgressDialog(context);
+        //_scanningDialogue.setTitle("Scanning");
+        _scanningDialogue.setMessage("Scanning...");
+        _scanningDialogue.setCancelable(false);
 
         // Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -125,14 +133,7 @@ public class LoungeView extends SurfaceView {
 
         count = 0;
 
-        if (_isSearching) {
-
-            p.setStyle(Paint.Style.FILL);
-            p.setColor(Color.BLACK);
-            p.setTextSize(30);
-            canvas.drawText("Scanning...", _screenPixelWidth*(1-_buttonWidthScale)/2, offset, p );
-
-        } else {
+        if (!_isSearching) {
 
             for (Button b : _availableConButtons) {
 
@@ -174,6 +175,7 @@ public class LoungeView extends SurfaceView {
         _availableConnections.clear();
         _availableConButtons.clear();
         _isSearching = true;
+        _scanningDialogue.show();
 
         // If we're already discovering, stop it
         if (_bluetoothAdapter.isDiscovering()) {
@@ -236,6 +238,7 @@ public class LoungeView extends SurfaceView {
                 }
 
                 _isSearching = false;
+                _scanningDialogue.dismiss();
                 LoungeView.this.invalidate();
 
 

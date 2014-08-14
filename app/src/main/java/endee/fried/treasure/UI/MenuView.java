@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Random;
 
 import endee.fried.treasure.BluetoothLounge;
+import endee.fried.treasure.BluetoothManager;
 import endee.fried.treasure.GameInvitationFragment;
 import endee.fried.treasure.InviteeLounge;
 import endee.fried.treasure.TemporaryActivity;
@@ -23,7 +24,7 @@ import endee.fried.treasure.TemporaryActivity;
 public class MenuView extends SurfaceView {
     private final List<Button> _buttons;
 
-    public MenuView(Context context) {
+    public MenuView(final Context context) {
         super(context);
         setBackgroundColor(Color.WHITE);
 
@@ -46,14 +47,21 @@ public class MenuView extends SurfaceView {
         _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.25f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Host Game", new Callback() {
             @Override
             public void doAction(Object obj) {
-                getContext().startActivity(new Intent(getContext(), BluetoothLounge.class));
+                context.startActivity(new Intent(getContext(), BluetoothLounge.class));
             }
         }));
 
-        _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.45f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Natasha's Temp Button", new Callback() {
+        _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.40f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Make Discoverable", new Callback() {
             @Override
             public void doAction(Object obj) {
-                getContext().startActivity(new Intent(getContext(), TemporaryActivity.class));
+                BluetoothManager.getInstance().ensureDiscoverable(context);
+            }
+        }));
+
+        _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.55f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Natasha's Temp Button", new Callback() {
+            @Override
+            public void doAction(Object obj) {
+                context.startActivity(new Intent(getContext(), TemporaryActivity.class));
             }
         }));
     }

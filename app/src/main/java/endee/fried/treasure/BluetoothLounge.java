@@ -223,16 +223,6 @@ public class BluetoothLounge extends Activity {
         _bluetoothManager.dropAllConnections();
     }
 
-    private void ensureDiscoverable() {
-        Log.d(TAG, "ensure discoverable");
-        if (_bluetoothAdapter.getScanMode() !=
-                BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-            startActivity(discoverableIntent);
-        }
-    }
-
     /**
      * Sends a message.
      * @param json  A JSONObject to send.
@@ -334,10 +324,6 @@ public class BluetoothLounge extends Activity {
                 // Launch the DeviceListActivity to see devices and do scan
                 Intent serverIntent = new Intent(this, DeviceListActivity.class);
                 startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
-                return true;
-            case R.id.discoverable:
-                // Ensure this device is discoverable by others
-                ensureDiscoverable();
                 return true;
         }
         return false;
