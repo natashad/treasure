@@ -16,6 +16,6 @@ public class MakeToastItem implements Item {
     public int getCost() { return 0; }
 
     public void activateItem() {
-        Toast.makeText(context,"Mmm Toast", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context,"Mmm Toast ", Toast.LENGTH_SHORT).show();
     }
 }

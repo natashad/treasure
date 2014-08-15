@@ -51,7 +51,7 @@ public class GameActivity extends Activity {
             public void doAction(Action action) {
                 if(_game.getNumPlayers() > 1) {
                     Log.e(TAG, "Sending a message");
-                    sendMessage(action.toJSON(), "");
+                    _bluetoothManager.writeToEveryone(action.toJSON().toString().getBytes(), "");
                 }
             }
         }, new Callback<Integer>() {
@@ -84,23 +84,6 @@ public class GameActivity extends Activity {
         _bluetoothManager.unregisterHandler(handler);
     }
 
-    /**
-     * Sends a message.
-     * @param json  A JSONObject to send.
-     */
-    private void sendMessage(JSONObject json, String except) {
-        String message = json.toString();
-
-        // Check that there's actually something to send
-        if (message.length() > 0) {
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
-            _bluetoothManager.writeToEveryone(send, except);
-        } else {
-            throw new RuntimeException("Sending empty message");
-        }
-    }
-
     // The Handler that gets information back from the BluetoothChatService
     private final Handler handler = new Handler() {
         @Override
@@ -120,10 +103,12 @@ public class GameActivity extends Activity {
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     try {
                         _game.addOpponentAction(Action.fromJSON(new JSONObject(readMessage)));
+                        _bluetoothManager.writeToEveryone(readBuf, msg.getData().getString(BluetoothLounge.DEVICE_ADDRESS));
                     } catch (JSONException e) {
                         e.printStackTrace();
                         throw new RuntimeException(e);
                     }
+
                     break;
             }
         }

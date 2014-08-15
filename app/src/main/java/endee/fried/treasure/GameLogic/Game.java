@@ -3,6 +3,8 @@ package endee.fried.treasure.GameLogic;
 import android.content.Context;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -133,7 +135,13 @@ public class Game {
 
     public void update() {
         // Play all actions
-        // TODO: fix to always play them in player order
+        Collections.sort(currentActions, new Comparator<Action>() {
+            @Override
+            public int compare(Action a, Action b) {
+                return a.getPlayerID() - b.getPlayerID();
+            }
+        });
+
         for(Action a : currentActions) {
             a.doAction(this);
 

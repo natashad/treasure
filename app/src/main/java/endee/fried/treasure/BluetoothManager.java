@@ -227,15 +227,16 @@ public class BluetoothManager {
      */
     public void writeToEveryone(byte[] out, String except) {
 
-        for (String deviceAddress : _connectedThreads.keySet()) {
-
-            if (deviceAddress.equals(except)) {
-                continue;
-            }
-
-            write(out, deviceAddress);
+        // Check that there's actually something to send
+        if (out.length == 0) {
+            throw new RuntimeException("Trying to send empty message");
         }
 
+        for (String deviceAddress : _connectedThreads.keySet()) {
+            if (!deviceAddress.equals(except)) {
+                write(out, deviceAddress);
+            }
+        }
     }
 
     /**

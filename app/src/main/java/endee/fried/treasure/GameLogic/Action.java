@@ -16,24 +16,23 @@ public abstract class Action {
         _player = player;
     }
 
-    public static Action fromJSON(JSONObject json) {
-        try {
-            String type = json.getString(TYPE_KEY);
-            int player = json.getInt(PLAYER_KEY);
+    public static Action fromJSON(JSONObject json) throws JSONException {
+        String type = json.getString(TYPE_KEY);
+        int player = json.getInt(PLAYER_KEY);
 
-            if(MoveAction.TYPE.equals(type)) {
-                int tile = json.getInt(MoveAction.TILE_KEY);
-                return new MoveAction(player, tile);
-            } else if(UseItemAction.TYPE.equals(type)) {
-                int itemIndex = json.getInt(UseItemAction.ITEM_KEY);
-                return new UseItemAction(player, itemIndex);
-            } else {
-                throw new RuntimeException("Unknown Action Type: " + type);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+        if(MoveAction.TYPE.equals(type)) {
+            int tile = json.getInt(MoveAction.TILE_KEY);
+            return new MoveAction(player, tile);
+        } else if(UseItemAction.TYPE.equals(type)) {
+            int itemIndex = json.getInt(UseItemAction.ITEM_KEY);
+            return new UseItemAction(player, itemIndex);
+        } else {
+            throw new RuntimeException("Unknown Action Type: " + type);
         }
+    }
+
+    public int getPlayerID() {
+        return _player;
     }
 
     public abstract JSONObject toJSON();
