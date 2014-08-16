@@ -77,6 +77,8 @@ public class Player {
         return items.get(index);
     }
 
+    public List<Item> getItems() { return items; }
+
     public int getNumItems() {
         return items.size();
     }

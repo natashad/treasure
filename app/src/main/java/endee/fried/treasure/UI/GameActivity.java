@@ -45,6 +45,7 @@ public class GameActivity extends Activity {
                 findViewById(R.id.map_view).invalidate();
                 findViewById(R.id.action_point_view).invalidate();
                 findViewById(R.id.status_view).invalidate();
+                findViewById(R.id.item_grid_view).invalidate();
             }
         },new Callback<Action>() {
             @Override
@@ -66,6 +67,7 @@ public class GameActivity extends Activity {
         ((MapView)findViewById(R.id.map_view)).init(_game);
         ((ActionPointView)findViewById(R.id.action_point_view)).init(_game);
         ((StatusView)findViewById(R.id.status_view)).init(_game);
+        ((ItemGridView)findViewById(R.id.item_grid_view)).init(_game);
 
         _bluetoothManager = BluetoothManager.getInstance();
     }
