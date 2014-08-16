@@ -44,7 +44,8 @@
         android:orientation="horizontal"
         android:background="@android:color/holo_green_light" >
 
-        <View
+        <endee.fried.treasure.UI.ItemGridView
+            android:id="@+id/item_grid_view"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="0.5"

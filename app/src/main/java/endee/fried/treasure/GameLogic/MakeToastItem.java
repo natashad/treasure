@@ -8,6 +8,7 @@ import android.widget.Toast;
  */
 public class MakeToastItem implements Item {
     private final Context context;
+    private final String name = "ToastItem";
 
     public MakeToastItem(Context context) {
         this.context = context;
@@ -17,5 +18,13 @@ public class MakeToastItem implements Item {
 
     public void activateItem() {
         Toast.makeText(context,"Mmm Toast ", Toast.LENGTH_SHORT).show();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String toString() {
+        return getName();
     }
 }

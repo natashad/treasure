@@ -37,6 +37,7 @@ public class Game {
     private final Callback<Object> _redraw;
     private final Callback<Action> _sendAction;
     private final Callback<Integer> _centerOnTile;
+    private final Callback<Item> _itemListChange;
 
 
     private final List<Player> players;
@@ -52,12 +53,13 @@ public class Game {
     private boolean madeMove;
 
 
-    public Game(int numPlayers, int localPlayer, long seed, Context context, Callback<Object> redraw, Callback<Action> sendAction, Callback<Integer> centerOnTile) {
+    public Game(int numPlayers, int localPlayer, long seed, Context context, Callback<Object> redraw, Callback<Action> sendAction, Callback<Integer> centerOnTile, Callback<Item> itemListChange) {
         this.localPlayer = localPlayer;
 
         _redraw = redraw;
         _centerOnTile = centerOnTile;
         _sendAction = sendAction;
+        _itemListChange = itemListChange;
 
         state = State.IN_PROGRESS;
         madeMove = false;
@@ -217,6 +219,7 @@ public class Game {
 
         // Tell view to redraw
         _redraw.doAction(null);
+        _itemListChange.doAction(null);
     }
 
     public void movePlayer(int tile) {

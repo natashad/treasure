@@ -2,6 +2,7 @@ package endee.fried.treasure.GameLogic;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.util.Log;
 
 /**
  * Created by leslie on 05/08/14.
@@ -52,6 +53,7 @@ public class Player {
 
     public void giveItem(Item item) {
         items.add(item);
+        Log.d("PLAYER", items.toString());
     }
 
     public Item useItem(int index) {
@@ -76,6 +78,8 @@ public class Player {
     public Item getItem(int index) {
         return items.get(index);
     }
+
+    public List<Item> getItems() { return items; }
 
     public int getNumItems() {
         return items.size();

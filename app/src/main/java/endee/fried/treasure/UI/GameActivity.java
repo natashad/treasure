@@ -1,19 +1,26 @@
 package endee.fried.treasure.UI;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import endee.fried.treasure.BluetoothLounge;
 import endee.fried.treasure.BluetoothManager;
 import endee.fried.treasure.GameInvitationFragment;
 import endee.fried.treasure.GameLogic.Action;
 import endee.fried.treasure.GameLogic.Game;
+import endee.fried.treasure.GameLogic.Item;
+import endee.fried.treasure.GameLogic.Player;
 import endee.fried.treasure.InviteeLounge;
 import endee.fried.treasure.R;
 
@@ -38,6 +45,8 @@ public class GameActivity extends Activity {
 
         Log.i(TAG, "Random seed: " + seed);
 
+        final Context context = this;
+
         _game = new Game(numPlayers, playerNumber, seed, this, new Callback<Object>() {
             @Override
             public void doAction(Object object) {
@@ -45,6 +54,7 @@ public class GameActivity extends Activity {
                 findViewById(R.id.map_view).invalidate();
                 findViewById(R.id.action_point_view).invalidate();
                 findViewById(R.id.status_view).invalidate();
+                findViewById(R.id.item_grid_view).invalidate();
             }
         },new Callback<Action>() {
             @Override
@@ -61,11 +71,28 @@ public class GameActivity extends Activity {
                     ((MapView) findViewById(R.id.map_view)).centerOnTile(tile);
                 }
             }
-        });
+        }, new Callback<Item>() {
+            @Override
+            public void doAction(Item item) {
+                ItemGridView gridView = (ItemGridView) findViewById(R.id.item_grid_view);
+                Player player = _game.getLocalPlayer();
+                List<Item> items = player.getItems();
+                ArrayAdapter adapter = (ArrayAdapter)gridView.getAdapter();
+                adapter.clear();
+                adapter.addAll(items);
+            }
+        }
+
+        );
 
         ((MapView)findViewById(R.id.map_view)).init(_game);
         ((ActionPointView)findViewById(R.id.action_point_view)).init(_game);
         ((StatusView)findViewById(R.id.status_view)).init(_game);
+        ((ItemGridView)findViewById(R.id.item_grid_view)).init(_game);
+        ItemGridView gridView = (ItemGridView) findViewById(R.id.item_grid_view);
+        List<Item> items = new ArrayList<Item>();
+        ArrayAdapter<Item> adapter = new ArrayAdapter<Item>(context, R.layout.item_view, items);
+        gridView.setAdapter(adapter);
 
         _bluetoothManager = BluetoothManager.getInstance();
     }

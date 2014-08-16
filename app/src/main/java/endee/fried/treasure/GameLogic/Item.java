@@ -6,4 +6,5 @@ package endee.fried.treasure.GameLogic;
 public interface Item {
     public int getCost();
     public void activateItem();
+    public String getName();
 }
