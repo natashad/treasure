@@ -8,7 +8,7 @@ import android.graphics.RectF;
 /**
  * Created by natasha on 2014-08-05.
  */
-public class RectangleButton extends Button implements ListItemUI {
+public class RectangleButton extends Button {
 
     private float _width;
     private float _height;
@@ -51,11 +51,6 @@ public class RectangleButton extends Button implements ListItemUI {
     @Override
     protected boolean isInBounds(float x, float y) {
         return _rect.contains(x, y);
-    }
-
-    @Override
-    public void drawListItem(Canvas canvas, Paint paint) {
-        drawButton(canvas, paint);
     }
 
     @Override
