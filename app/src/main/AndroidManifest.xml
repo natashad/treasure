@@ -42,6 +42,12 @@
             android:label="@string/title_activity_invitee_lounge"
             android:noHistory="true"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".NewBluetoothLoungeActivity"
+            android:label="@string/title_activity_new_bluetooth_lounge"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+
+        </activity>
     </application>
 
 </manifest>

@@ -16,6 +16,7 @@ import endee.fried.treasure.BluetoothLounge;
 import endee.fried.treasure.BluetoothManager;
 import endee.fried.treasure.GameInvitationFragment;
 import endee.fried.treasure.InviteeLounge;
+import endee.fried.treasure.NewBluetoothLoungeActivity;
 
 /**
  * Created by natasha on 2014-08-05.
@@ -54,6 +55,13 @@ public class MenuView extends SurfaceView {
             @Override
             public void doAction(Object obj) {
                 BluetoothManager.getInstance().ensureDiscoverable(context);
+            }
+        }));
+
+        _buttons.add(new RectangleButton(screenPixelWidth / 2, screenPixelHeight * 0.55f, screenPixelWidth * 0.8f, screenPixelHeight * 0.1f, "Temp New Bluetooth Lounge", new Callback() {
+            @Override
+            public void doAction(Object obj) {
+                context.startActivity(new Intent(getContext(), NewBluetoothLoungeActivity.class));
             }
         }));
     }
