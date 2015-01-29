@@ -27,6 +27,7 @@ public class MainMenuActivity extends Activity implements Callback {
     // Local Bluetooth adapter
     private BluetoothAdapter _bluetoothAdapter = null;
     private BluetoothManager _bluetoothManager = null;
+    private GameInvitationFragment _invitation = null;
 
 
     @Override
@@ -122,7 +123,13 @@ public class MainMenuActivity extends Activity implements Callback {
                         JSONObject json = new JSONObject(readMessage);
                         if (json.has(BluetoothManager.GAME_INVITATION)) {
 
-                            Log.d(TAG, "Received a game invitation");
+                            Log.d(TAG, "Received a game _invitation");
+
+                            if (_invitation != null) {
+                                if (_invitation.isVisible()) {
+                                    _invitation.dismiss();
+                                }
+                            }
 
                             long seed = json.getLong(InviteeLounge.GAME_SEED_PRE);
                             int playerNumber = json.getInt(InviteeLounge.PLAYER_NUMBER_PRE);
@@ -132,19 +139,19 @@ public class MainMenuActivity extends Activity implements Callback {
                                 invitedList.add((String)jsonArray.get(i));
                             }
 
-                            GameInvitationFragment invitation = new GameInvitationFragment();
+                            _invitation = new GameInvitationFragment();
                             Bundle bundle = new Bundle();
                             bundle.putLong(GameInvitationFragment.GAME_SEED, seed);
                             bundle.putInt(InviteeLounge.PLAYER_NUMBER_PRE, playerNumber);
                             bundle.putStringArrayList(InviteeLounge.INITIAL_INVITED_LIST_PRE, invitedList);
-                            invitation.setArguments(bundle);
+                            _invitation.setArguments(bundle);
 
                             // Doing this check to hopefully prevent the exception I was getting:
                             // java.lang.IllegalStateException: Can not perform this action after
                             // onSaveInstanceState dialogfragment
                             if (!MainMenuActivity.this.isFinishing())
                             {
-                                invitation.show(MainMenuActivity.this.getFragmentManager(), TAG);
+                                _invitation.show(MainMenuActivity.this.getFragmentManager(), TAG);
                             }
 
                         }

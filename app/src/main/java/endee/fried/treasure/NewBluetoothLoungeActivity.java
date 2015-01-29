@@ -57,16 +57,25 @@ public class NewBluetoothLoungeActivity extends Activity {
     // List of all connected devices selected for invitation.
     private HashMap<String, BluetoothConnection> _invitedDeviceList = new HashMap<String, BluetoothConnection>();
     private InvitedDeviceListAdapter _invitedDevicesAdapter;
+    private HashMap<String, Boolean> _invitedPlayersReadyState = new HashMap();
 
     private ProgressDialog _scanningDialogue;
     private boolean _isSearching = false;
     private long _seed;
+
+    private boolean _isHost = true;
+    private int _playerNumber = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_bluetooth_lounge);
         _bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+
+         if (getIntent().getExtras() != null && getIntent().getExtras().getBoolean(BluetoothManager.GAME_INVITATION)) {
+             _isHost = false;
+         }
 
         // If the adapter is null, then Bluetooth is not supported
         if (_bluetoothAdapter == null) {
@@ -86,17 +95,32 @@ public class NewBluetoothLoungeActivity extends Activity {
         _seed = new Random().nextLong();
 
         setUpUI();
-        doDiscovery();
+        if (_isHost) {
+            doDiscovery();
+        } else {
+            _seed = getIntent().getExtras().getLong(GameInvitationFragment.GAME_SEED);
+
+            ArrayList<String> tempInvitedList = getIntent().getExtras().getStringArrayList(InviteeLounge.INITIAL_INVITED_LIST_PRE );
+            for (String invited : tempInvitedList) {
+                String address = invited.substring(0, invited.indexOf("@"));
+                if (address.equals(_bluetoothAdapter.getAddress())) {
+                    continue;
+                    //don't add ourselves to the invited list.
+                }
+                String name = invited.substring(invited.indexOf("@") + 1);
+                _invitedDeviceList.put(address, new BluetoothConnection(name, address));
+            }
+            _invitedDevicesAdapter.addAll(_invitedDeviceList.values());
+
+            _playerNumber = getIntent().getExtras().getInt(InviteeLounge.PLAYER_NUMBER_PRE);
+        }
 
     }
 
     private void setUpUI() {
 
-        _scanningDialogue = new ProgressDialog(this);
-        _scanningDialogue.setMessage("Scanning...");
-
         _invitedDevicesAdapter = new InvitedDeviceListAdapter(this, R.layout.invited_device_listitem,
-               new ArrayList<BluetoothConnection>());
+                new ArrayList<BluetoothConnection>());
 
         ListView invitedListView = (ListView)findViewById(R.id.invitedDeviceListView);
 
@@ -105,6 +129,15 @@ public class NewBluetoothLoungeActivity extends Activity {
         invitedListView.addHeaderView(invitedTitle, "", false);
 
         invitedListView.setAdapter(_invitedDevicesAdapter);
+
+        // Only do the rest of the setup if you are the host.
+        if (!_isHost) {
+            findViewById(R.id.scanButton).setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        _scanningDialogue = new ProgressDialog(this);
+        _scanningDialogue.setMessage("Scanning...");
 
 
         // PAIRED DEVICES
@@ -248,18 +281,80 @@ public class NewBluetoothLoungeActivity extends Activity {
                         case Failed:
                             if (_invitedDeviceList.containsKey(address)) {
                                 _invitedDeviceList.remove(address);
+                                _invitedPlayersReadyState.remove(address);
+                                invitationsUpdated();
                             }
                             Toast.makeText(getApplicationContext(), "Failed to connect to " + name,
                                     Toast.LENGTH_SHORT).show();
                             break;
                         case Dropped:
                             _availableListAdapter.remove(_connectedDevices.get(address));
-                            _invitedDeviceList.remove(address);
+                            if (_invitedDeviceList.containsKey(address)) {
+                                _invitedDeviceList.remove(address);
+                                _invitedPlayersReadyState.remove(address);
+                                invitationsUpdated();
+                            }
                             Toast.makeText(getApplicationContext(), "Connection to " + name + " was dropped",
                                     Toast.LENGTH_SHORT).show();
                             break;
                     }
                     break;
+
+                //TODO: Test all of this
+                case BluetoothLounge.MESSAGE_READ:
+                    Log.i(TAG, "RECEIVING A MESSAGE" + new String((byte[])msg.obj));
+
+                    byte[] readBuf = (byte[]) msg.obj;
+                    // construct a string from the valid bytes in the buffer
+                    String readMessage = new String(readBuf, 0, msg.arg1);
+
+                    try {
+                        JSONObject json = new JSONObject(readMessage);
+
+                        if (json.has(InviteeLounge.READY_STRING)) {
+                            // a player is ready! Update state and send update to everyone else
+                            _invitedPlayersReadyState.put(address, true);
+                        }
+                        if (json.has(InviteeLounge.LEFT_OR_DECLINED_INVITATION)) {
+                            _invitedDeviceList.remove(json.getString(InviteeLounge.LEFT_OR_DECLINED_INVITATION));
+                        }
+                        if (json.has(InviteeLounge.INITIAL_INVITED_LIST_PRE)) {
+                            // The invited list has changed.
+                            JSONArray jsonArray = ((JSONArray)json.get(InviteeLounge.INITIAL_INVITED_LIST_PRE));
+
+                            _invitedDeviceList.clear();
+
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                BluetoothConnection con = convertStringToConnection(jsonArray.getString(i));
+                                _invitedDeviceList.put(con.getAddress(), con);
+                            }
+                        }
+                        if (json.has(InviteeLounge.PLAYER_NUMBER_PRE)) {
+                            // the player list has changed.
+                            _playerNumber = json.getInt(InviteeLounge.PLAYER_NUMBER_PRE);
+                        }
+                        if (json.has(InviteeLounge.ACCEPTED_LIST_PRE)) {
+                            JSONArray jsonArray = ((JSONArray)json.get(InviteeLounge.ACCEPTED_LIST_PRE));
+
+                            _invitedPlayersReadyState.clear();
+
+                            for (int i = 0; i < jsonArray.length(); i++) {
+
+                                _invitedPlayersReadyState.put(jsonArray.getString(i), true);
+
+                            }
+                        }
+
+                        _invitedDevicesAdapter.clear();
+                        _invitedDevicesAdapter.addAll(_invitedDeviceList.values());
+
+                        if (_isHost) {
+                            invitationsUpdated();
+                        }
+
+                    } catch(JSONException e) {
+                        e.printStackTrace();
+                    }
             }
         }
     };
@@ -269,7 +364,65 @@ public class NewBluetoothLoungeActivity extends Activity {
         BluetoothConnection c = new BluetoothConnection(name, address);
         _invitedDeviceList.put(address, c);
         _invitedDevicesAdapter.add(c);
+        _invitedPlayersReadyState.put(address, false);
 
+        ArrayList<String> allPlayers = getStringListOfAllPlayers();
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put(BluetoothManager.GAME_INVITATION, true);
+            json.put(InviteeLounge.GAME_SEED_PRE, _seed);
+
+            JSONArray invitedPlayers = new JSONArray(allPlayers);
+            json.put(InviteeLounge.INITIAL_INVITED_LIST_PRE, invitedPlayers);
+            int playerNum = allPlayers.indexOf(c.getAddress() + "@" + c.getName());
+            json.put(InviteeLounge.PLAYER_NUMBER_PRE, playerNum);
+            Log.d(TAG, "Sending invitation to player number: " + playerNum);
+
+            sendMessage(json, address);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        invitationsUpdated();
+    }
+
+    private void invitationsUpdated() {
+
+        ArrayList<String> allPlayers = getStringListOfAllPlayers();
+        for (String address : _invitedDeviceList.keySet()) {
+            //TODO: Encapsulate this. Being used in sendInvitation as well
+            JSONObject json = new JSONObject();
+            try {
+                json.put(BluetoothManager.GAME_INVITATION, true);
+                json.put(InviteeLounge.GAME_SEED_PRE, _seed);
+
+                JSONArray invitedPlayers = new JSONArray(allPlayers);
+                json.put(InviteeLounge.INITIAL_INVITED_LIST_PRE, invitedPlayers);
+                int playerNum = allPlayers.indexOf(address + "@" + _invitedDeviceList.get(address).getName());
+                json.put(InviteeLounge.PLAYER_NUMBER_PRE, playerNum);
+                Log.d(TAG, "Sending invitation to player number: " + playerNum);
+
+                JSONArray readyPlayers = new JSONArray();
+                for (String add : _invitedPlayersReadyState.keySet()) {
+                    if (_invitedPlayersReadyState.get(add)) {
+                        readyPlayers.put(add);
+                    }
+                }
+                json.put(InviteeLounge.ACCEPTED_LIST_PRE, readyPlayers);
+                sendMessage(json, address);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+        }
+
+    }
+
+    private ArrayList<String> getStringListOfAllPlayers() {
         // This needs to be a string array so it can be easily passed around in bundles and json.
         // The format i'm using is Address@Name since address can never have an '@' and so we can
         // simply split from the first instance of @ to separate them.
@@ -279,23 +432,13 @@ public class NewBluetoothLoungeActivity extends Activity {
         }
         // Add the host to this list.
         allPlayers.add(0, _bluetoothAdapter.getAddress() + "@" + _bluetoothAdapter.getName());
+        return allPlayers;
+    }
 
-        JSONObject json = new JSONObject();
-        try {
-            json.put(BluetoothManager.GAME_INVITATION, true);
-            json.put(InviteeLounge.GAME_SEED_PRE, _seed);
-
-            //TODO: Send player number, other invited players.
-            JSONArray invitedPlayers = new JSONArray(allPlayers);
-            json.put(InviteeLounge.INITIAL_INVITED_LIST_PRE, invitedPlayers);
-            json.put(InviteeLounge.PLAYER_NUMBER_PRE, allPlayers.indexOf(c));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        sendMessage(json, address);
-
-
-
+    private BluetoothConnection convertStringToConnection(String longString) {
+        String address = longString.substring(0, longString.indexOf("@"));
+        String name = longString.substring(longString.indexOf("@") + 1);
+        return new BluetoothConnection(name, address);
     }
 
     /**
@@ -393,7 +536,7 @@ public class NewBluetoothLoungeActivity extends Activity {
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
             Log.d(TAG, "Touched button at position " + i);
             BluetoothConnection device = (BluetoothConnection) adapterView.getAdapter().getItem(i);
-            // TODO: DO THE CONNECTION DANCE THEN INVITE THEM TO A GAME.
+
             BluetoothDevice btDevice = _bluetoothAdapter.getRemoteDevice(device.getAddress());
             if (_invitedDeviceList.containsKey(btDevice)) {
                 Toast.makeText(NewBluetoothLoungeActivity.this,

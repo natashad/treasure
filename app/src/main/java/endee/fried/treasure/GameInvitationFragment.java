@@ -31,7 +31,8 @@ public class GameInvitationFragment extends DialogFragment {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
 
-                        Intent intent = new Intent(getActivity(), InviteeLounge.class);
+                        Intent intent = new Intent(getActivity(), NewBluetoothLoungeActivity.class);
+                        intent.putExtra(BluetoothManager.GAME_INVITATION, true);
                         intent.putExtra(GameInvitationFragment.GAME_SEED, seed);
                         intent.putExtra(InviteeLounge.INITIAL_INVITED_LIST_PRE,invitedList );
                         intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, playerNumber);
