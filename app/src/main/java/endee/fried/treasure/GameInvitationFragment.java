@@ -14,15 +14,12 @@ import java.util.ArrayList;
  */
 public class GameInvitationFragment extends DialogFragment {
 
-    public static final String GAME_SEED = "GameSeed";
     public static final String DECLINE_INVITATION = "Declined";
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
 
-        final long seed = getArguments().getLong(GAME_SEED);
-        final int playerNumber = getArguments().getInt(InviteeLounge.PLAYER_NUMBER_PRE);
-        final ArrayList<String> invitedList = getArguments().getStringArrayList(InviteeLounge.INITIAL_INVITED_LIST_PRE);
+        final String JSON = getArguments().getString(NewBluetoothLoungeActivity.JSON_KEY);
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -32,10 +29,7 @@ public class GameInvitationFragment extends DialogFragment {
                     public void onClick(DialogInterface dialogInterface, int i) {
 
                         Intent intent = new Intent(getActivity(), NewBluetoothLoungeActivity.class);
-                        intent.putExtra(BluetoothManager.GAME_INVITATION, true);
-                        intent.putExtra(GameInvitationFragment.GAME_SEED, seed);
-                        intent.putExtra(InviteeLounge.INITIAL_INVITED_LIST_PRE,invitedList );
-                        intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, playerNumber);
+                        intent.putExtra(NewBluetoothLoungeActivity.JSON_KEY, JSON);
                         getActivity().startActivity(intent);
                     }
                 })

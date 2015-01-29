@@ -123,7 +123,9 @@ public class MainMenuActivity extends Activity implements Callback {
                         JSONObject json = new JSONObject(readMessage);
                         if (json.has(BluetoothManager.GAME_INVITATION)) {
 
-                            Log.d(TAG, "Received a game _invitation");
+                            String name = msg.getData().getString(BluetoothManager.DEVICE_NAME_KEY);
+
+                            Log.d(TAG, "Received a game invitation from " + name);
 
                             if (_invitation != null) {
                                 if (_invitation.isVisible()) {
@@ -131,19 +133,9 @@ public class MainMenuActivity extends Activity implements Callback {
                                 }
                             }
 
-                            long seed = json.getLong(InviteeLounge.GAME_SEED_PRE);
-                            int playerNumber = json.getInt(InviteeLounge.PLAYER_NUMBER_PRE);
-                            ArrayList<String> invitedList =  new ArrayList<String>();
-                            JSONArray jsonArray = json.getJSONArray(InviteeLounge.INITIAL_INVITED_LIST_PRE);
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                invitedList.add((String)jsonArray.get(i));
-                            }
-
                             _invitation = new GameInvitationFragment();
                             Bundle bundle = new Bundle();
-                            bundle.putLong(GameInvitationFragment.GAME_SEED, seed);
-                            bundle.putInt(InviteeLounge.PLAYER_NUMBER_PRE, playerNumber);
-                            bundle.putStringArrayList(InviteeLounge.INITIAL_INVITED_LIST_PRE, invitedList);
+                            bundle.putString(NewBluetoothLoungeActivity.JSON_KEY, readMessage);
                             _invitation.setArguments(bundle);
 
                             // Doing this check to hopefully prevent the exception I was getting:

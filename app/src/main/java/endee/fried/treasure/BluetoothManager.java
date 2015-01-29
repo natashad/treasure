@@ -52,6 +52,11 @@ public class BluetoothManager {
     public static final int STATE_LISTEN = 0x1;     // now listening for incoming connections
     public static final int STATE_CONNECTING = 0x2; // now initiating an outgoing connection
 
+    // Keys for data
+    public static final String CONNECTION_STATE = "ConnectionState";
+    public static final String DEVICE_NAME_KEY = "Device";
+    public static final String DEVICE_ADDRESS_KEY = "Address";
+
     // SINGLETON INSTANCE OF SELF
     private static BluetoothManager _self;
 
@@ -124,9 +129,9 @@ public class BluetoothManager {
             Message msg = h.obtainMessage(BluetoothLounge.MESSAGE_STATE_CHANGE);
             if (deviceAddress != "") {
                 Bundle bundle = new Bundle();
-                bundle.putSerializable(BluetoothLounge.CONNECTION_STATE, state);
-                bundle.putString(BluetoothLounge.DEVICE_ADDRESS, deviceAddress);
-                bundle.putString(BluetoothLounge.DEVICE_NAME, deviceName);
+                bundle.putSerializable(BluetoothManager.CONNECTION_STATE, state);
+                bundle.putString(DEVICE_ADDRESS_KEY, deviceAddress);
+                bundle.putString(DEVICE_NAME_KEY, deviceName);
                 msg.setData(bundle);
             }
             msg.sendToTarget();
@@ -477,7 +482,7 @@ public class BluetoothManager {
                     for (Handler h : _handlers) {
                         Message message = h.obtainMessage(BluetoothLounge.MESSAGE_READ, bytes, -1, buffer);
                         Bundle bundle = new Bundle();
-                        bundle.putString(BluetoothLounge.DEVICE_ADDRESS, __device.getAddress());
+                        bundle.putString(DEVICE_ADDRESS_KEY, __device.getAddress());
                         message.setData(bundle);
                         message.sendToTarget();
                     }

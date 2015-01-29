@@ -22,6 +22,7 @@ import endee.fried.treasure.GameLogic.Game;
 import endee.fried.treasure.GameLogic.Item;
 import endee.fried.treasure.GameLogic.Player;
 import endee.fried.treasure.InviteeLounge;
+import endee.fried.treasure.NewBluetoothLoungeActivity;
 import endee.fried.treasure.R;
 
 
@@ -39,8 +40,8 @@ public class GameActivity extends Activity {
         setContentView(R.layout.game_layout);
 
         Bundle extras = getIntent().getExtras();
-        long seed = extras.getLong(GameInvitationFragment.GAME_SEED);
-        int playerNumber = extras.getInt(InviteeLounge.PLAYER_NUMBER_PRE);
+        long seed = extras.getLong(NewBluetoothLoungeActivity.GAME_SEED_KEY);
+        int playerNumber = extras.getInt(InviteeLounge.PLAYER_NUMBER_KEY);
         int numPlayers = extras.getInt(InviteeLounge.NUMBER_OF_PLAYERS);
 
         Log.i(TAG, "Random seed: " + seed);
@@ -130,7 +131,7 @@ public class GameActivity extends Activity {
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     try {
                         _game.addOpponentAction(Action.fromJSON(new JSONObject(readMessage)));
-                        _bluetoothManager.writeToEveryone(readBuf, msg.getData().getString(BluetoothLounge.DEVICE_ADDRESS));
+                        _bluetoothManager.writeToEveryone(readBuf, msg.getData().getString(BluetoothManager.DEVICE_ADDRESS_KEY));
                     } catch (JSONException e) {
                         e.printStackTrace();
                         throw new RuntimeException(e);

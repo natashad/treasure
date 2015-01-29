@@ -20,12 +20,10 @@ public class BluetoothDeviceListAdapter extends ArrayAdapter<BluetoothConnection
     private static final String TAG = BluetoothDeviceListAdapter.class.getName();
 
     private Context _context;
-    private int _layoutResourceId;
 
     public BluetoothDeviceListAdapter(Context context, int resource, ArrayList<BluetoothConnection> data) {
         super(context, resource, data);
         _context = context;
-        _layoutResourceId = resource;
     }
 
     @Override
@@ -34,7 +32,13 @@ public class BluetoothDeviceListAdapter extends ArrayAdapter<BluetoothConnection
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.bluetooth_devices_listitem, parent, false);
         TextView textView = (TextView) rowView.findViewById(R.id.btDeviceText);
-        textView.setText(getItem(position).getName());
+
+        if(getItem(position).getName() != null) {
+            textView.setText(getItem(position).getName());
+        } else {
+            textView.setText(getItem(position).getAddress());
+        }
+
         return rowView;
     }
 

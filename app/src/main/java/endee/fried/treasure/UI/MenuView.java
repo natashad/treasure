@@ -37,8 +37,8 @@ public class MenuView extends SurfaceView {
             @Override
             public void doAction(Object obj) {
                 Intent intent = new Intent(getContext(), GameActivity.class);
-                intent.putExtra(GameInvitationFragment.GAME_SEED, new Random().nextLong());
-                intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, 0);
+                intent.putExtra(NewBluetoothLoungeActivity.GAME_SEED_KEY, new Random().nextLong());
+                intent.putExtra(InviteeLounge.PLAYER_NUMBER_KEY, 0);
                 intent.putExtra(InviteeLounge.NUMBER_OF_PLAYERS, 1);
                 getContext().startActivity(intent);
             }

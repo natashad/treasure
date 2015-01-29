@@ -39,10 +39,6 @@ public class BluetoothLounge extends Activity {
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
     public static final int MESSAGE_WRITE = 3;
-    // Key names received from the BluetoothManager
-    public static final String CONNECTION_STATE = "connection state";
-    public static final String DEVICE_NAME = "device_name";
-    public static final String DEVICE_ADDRESS = "device_address";
     // Intent request codes
     protected static final int REQUEST_CONNECT_DEVICE = 1;
     protected static final int REQUEST_ENABLE_BT = 2;
@@ -129,9 +125,9 @@ public class BluetoothLounge extends Activity {
                         json.put(BluetoothManager.GAME_INVITATION, true);
                         json.put(InviteeLounge.GAME_SEED_PRE, _seed);
                         JSONArray invitedPlayers = new JSONArray(allPlayers);
-                        json.put(InviteeLounge.INITIAL_INVITED_LIST_PRE, invitedPlayers);
+                        json.put(InviteeLounge.INITIAL_INVITED_LIST_KEY, invitedPlayers);
                         // i+1 so that the host is always player 0.
-                        json.put(InviteeLounge.PLAYER_NUMBER_PRE, i+1);
+                        json.put(InviteeLounge.PLAYER_NUMBER_KEY, i+1);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -139,10 +135,10 @@ public class BluetoothLounge extends Activity {
                 }
 
                 Intent intent = new Intent(BluetoothLounge.this, InviteeLounge.class);
-                intent.putExtra(GameInvitationFragment.GAME_SEED, _seed);
+                intent.putExtra(NewBluetoothLoungeActivity.GAME_SEED_KEY, _seed);
                 // Host is always Player 0.
-                intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, 0);
-                intent.putExtra(InviteeLounge.INITIAL_INVITED_LIST_PRE, allPlayers);
+                intent.putExtra(InviteeLounge.PLAYER_NUMBER_KEY, 0);
+                intent.putExtra(InviteeLounge.INITIAL_INVITED_LIST_KEY, allPlayers);
 
                 BluetoothLounge.this.startActivity(intent);
             }
@@ -246,15 +242,15 @@ public class BluetoothLounge extends Activity {
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            String address = msg.getData().getString(DEVICE_ADDRESS);
-            String name = msg.getData().getString(DEVICE_NAME);
+            String address = msg.getData().getString(BluetoothManager.DEVICE_ADDRESS_KEY);
+            String name = msg.getData().getString(BluetoothManager.DEVICE_NAME_KEY);
 
             switch (msg.what) {
                 case MESSAGE_STATE_CHANGE:
                     Log.i(TAG, "MESSAGE_STATE_CHANGE");
 
                     BluetoothManager.ConnectionState state = (BluetoothManager.ConnectionState)msg.getData().
-                            getSerializable(BluetoothLounge.CONNECTION_STATE);
+                            getSerializable(BluetoothManager.CONNECTION_STATE);
 
                     switch (state) {
                         case Connected:

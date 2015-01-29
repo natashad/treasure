@@ -26,12 +26,12 @@ public class InviteeLounge extends Activity {
 
     // CONSTANTS
     public static final String TAG = InviteeLounge.class.getName();
-    public static final String READY_STRING = "ReadyToStart";
-    public static final String ACCEPTED_LIST_PRE = "accptedPeople";
+    public static final String READY_KEY = "Ready";
+    public static final String ACCEPTED_LIST_PRE = "acceptedPeople";
     public static final String WAITING_LIST_PRE = "waitingPeople";
     public static final String GAME_SEED_PRE = "StartingSeed";
-    public static final String INITIAL_INVITED_LIST_PRE = "InvitedPlayers";
-    public static final String PLAYER_NUMBER_PRE = "PlayerNum";
+    public static final String INITIAL_INVITED_LIST_KEY = "InvitedPlayers";
+    public static final String PLAYER_NUMBER_KEY = "PlayerNum";
     public static final String NUMBER_OF_PLAYERS  = "NumberOfPlayers";
     public static final String JOINED_INVITEE_LOUNGE = "JoinedInviteeLounge";
     public static final String LEFT_OR_DECLINED_INVITATION = "LeftOrDeclinedInvitation";
@@ -54,9 +54,9 @@ public class InviteeLounge extends Activity {
 
         setContentView(R.layout.activity_invitee_lounge);
 
-        _gameSeed = getIntent().getExtras().getLong(GameInvitationFragment.GAME_SEED);
-        _playerNumber = getIntent().getExtras().getInt(InviteeLounge.PLAYER_NUMBER_PRE);
-        _waitingList = getIntent().getExtras().getStringArrayList(INITIAL_INVITED_LIST_PRE);
+        _gameSeed = getIntent().getExtras().getLong(NewBluetoothLoungeActivity.GAME_SEED_KEY);
+        _playerNumber = getIntent().getExtras().getInt(InviteeLounge.PLAYER_NUMBER_KEY);
+        _waitingList = getIntent().getExtras().getStringArrayList(INITIAL_INVITED_LIST_KEY);
 
         // Get local Bluetooth adapter
         _bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -94,7 +94,7 @@ public class InviteeLounge extends Activity {
                 if (readyButton.isChecked()) {
                     try {
                         JSONObject json = new JSONObject();
-                        json.put(READY_STRING, true);
+                        json.put(READY_KEY, true);
                         sendMessage(json, "");
 
                         _acceptedList.add(_bluetoothAdapter.getAddress());
@@ -108,7 +108,7 @@ public class InviteeLounge extends Activity {
                 } else {
                     try {
                         JSONObject json = new JSONObject();
-                        json.put(READY_STRING, false);
+                        json.put(READY_KEY, false);
                         sendMessage(json, "");
 
                         _waitingList.add(_bluetoothAdapter.getAddress());
@@ -140,8 +140,8 @@ public class InviteeLounge extends Activity {
 
         if (_waitingList.isEmpty()) {
             Intent intent = new Intent(this, GameActivity.class);
-            intent.putExtra(GameInvitationFragment.GAME_SEED, _gameSeed);
-            intent.putExtra(InviteeLounge.PLAYER_NUMBER_PRE, _playerNumber);
+            intent.putExtra(NewBluetoothLoungeActivity.GAME_SEED_KEY, _gameSeed);
+            intent.putExtra(InviteeLounge.PLAYER_NUMBER_KEY, _playerNumber);
             intent.putExtra(InviteeLounge.NUMBER_OF_PLAYERS, _acceptedList.size());
             this.startActivity(intent);
         }
@@ -262,13 +262,13 @@ public class InviteeLounge extends Activity {
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    String address = msg.getData().getString(BluetoothLounge.DEVICE_ADDRESS);
+                    String address = msg.getData().getString(BluetoothManager.DEVICE_ADDRESS_KEY);
 
                     try {
                         JSONObject json = new JSONObject(readMessage);
 
-                        if (json.has(READY_STRING)) {
-                            if (json.getBoolean(READY_STRING)) {
+                        if (json.has(READY_KEY)) {
+                            if (json.getBoolean(READY_KEY)) {
                                 _waitingList.remove(address);
                                 _acceptedList.add(address);
 

@@ -13,12 +13,14 @@
         android:layout_height="wrap_content"
         android:id="@+id/invitedDeviceListView"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:divider="@null"/>
 
     <ToggleButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ready"
+        android:textOff="Ready"
+        android:textOn="Ready"
         android:id="@+id/readyToggleButton"
         android:layout_below="@+id/invitedDeviceListView"
         android:layout_centerHorizontal="true" />
@@ -28,7 +30,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/pairedDeviceListView"
         android:layout_below="@+id/readyToggleButton"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:divider="@null"/>
 
     <Button
         style="?android:attr/buttonStyleSmall"
@@ -45,7 +48,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/availableDeviceListView"
         android:layout_below="@+id/scanButton"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:divider="@null"/>
 
 
 </RelativeLayout>
